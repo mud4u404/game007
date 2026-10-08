@@ -1,177 +1,204 @@
-/* One quiet handset view; all optional detail lives behind a deliberate tap. */
+/* A place, a face, a choice. The chrome stays quiet around the game world. */
 html[data-layout=focus] {
-  --paper: #f4f6f9;
-  --panel: #fff;
-  --ink: #202631;
-  --muted: #687384;
-  --line: #e1e5ec;
-  --soft: #f0f3f8;
-  --green: #315ee8;
-  --green-soft: #edf1ff;
-  --red: #ba3d47;
-  --red-soft: #fbedef;
-  --amber: #93641a;
-  --amber-soft: #faf2e5;
-  --blue: #315ee8;
+  --paper: #e9eae5;
+  --panel: #f5f5f0;
+  --ink: #25302e;
+  --muted: #65716d;
+  --line: #d1d7d0;
+  --soft: #dfe4dd;
+  --green: #8a5b39;
+  --green-soft: #eee2d3;
+  --red: #a14c3d;
+  --red-soft: #eedcd5;
+  --amber: #855b31;
+  --amber-soft: #ede2cf;
+  --blue: #577a82;
   --shadow: none;
   --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --serif: var(--sans);
-  --focus-map-line: #d6dce6;
-  --focus-water: #e8eefb;
-  --focus-path: #bec9dc;
-  --focus-button-text: #fff;
-  --nav-height: 65px;
+  --cinema-accent: #d7ae82;
+  --cinema-button-ink: #242a27;
+  --nav-height: 66px;
   color-scheme: light;
 }
 html[data-layout=focus][data-theme=dark] {
-  --paper: #12161e;
-  --panel: #191e28;
-  --ink: #f1f4fa;
-  --muted: #a0adbf;
-  --line: #303846;
-  --soft: #202734;
-  --green: #97b0ff;
-  --green-soft: #252f49;
-  --red: #ff97a0;
-  --red-soft: #38272f;
-  --amber: #e9be78;
-  --amber-soft: #352f25;
-  --blue: #97b0ff;
-  --focus-map-line: #323c4e;
-  --focus-water: #1c2941;
-  --focus-path: #41516c;
-  --focus-button-text: #141e35;
+  --paper: #161e20;
+  --panel: #202a2b;
+  --ink: #ecefe8;
+  --muted: #a0aba7;
+  --line: #35413f;
+  --soft: #293634;
+  --green: #d7ae82;
+  --green-soft: #3a342c;
+  --red: #efaa94;
+  --red-soft: #432e29;
+  --amber: #d7ae82;
+  --amber-soft: #3a342c;
+  --blue: #8fb0b5;
   color-scheme: dark;
 }
-html[data-layout=focus] body { background: var(--soft); letter-spacing: 0; }
-html[data-layout=focus] .demo-layout { background: var(--paper); box-shadow: 0 0 0 1px var(--line); }
+html[data-layout=focus] body { background: #0d1315; letter-spacing: 0; }
+html[data-layout=focus] .demo-layout { background: var(--paper); box-shadow: 0 0 70px #0005; }
 html[data-layout=focus] :is(h1,h2,h3,b,strong) { letter-spacing: 0; }
-html[data-layout=focus] .play-scroll { padding: 0 22px 22px; gap: 14px; }
-html[data-layout=focus][data-page=world] .play-scroll { padding: 0; gap: 0; }
+html[data-layout=focus] .play-scroll { padding: 0 20px 22px; gap: 14px; }
+html[data-layout=focus][data-page=world] .play-scroll { padding: 0; gap: 0; scroll-padding: 12px; }
 html[data-layout=focus][data-page=world] .play-scroll > .focus-world { flex: 1 0 auto; }
-html[data-layout=focus] .focus-world { min-height: 100%; display: flex; flex-direction: column; padding: 0 24px 16px; }
-html[data-layout=focus] .focus-top { min-height: 68px; padding-top: env(safe-area-inset-top); display: flex; align-items: center; gap: 17px; flex-shrink: 0; }
-html[data-layout=focus] .focus-top > b { font-size: 17px; font-weight: 700; }
-html[data-layout=focus] .focus-top time { display: flex; gap: 12px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
-html[data-layout=focus] .focus-top time span { color: var(--ink); }
-html[data-layout=focus] .focus-top button { margin-left: auto; margin-right: -10px; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; }
-html[data-layout=focus] .focus-location { flex-shrink: 0; padding: 17px 0 20px; }
-html[data-layout=focus] .focus-location h1 { font: 700 34px/1.2 var(--sans); }
-html[data-layout=focus] .focus-location p { font-size: 13px; color: var(--muted); line-height: 1.7; margin-top: 10px; max-width: 28em; }
-html[data-layout=focus] .focus-scene-map { flex: 1 1 240px; min-height: 188px; position: relative; overflow: hidden; isolation: isolate; border-radius: 3px; }
-html[data-layout=focus] .focus-plan { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-html[data-layout=focus] .focus-plan :is(path,circle) { vector-effect: non-scaling-stroke; }
-html[data-layout=focus] .focus-water { fill: var(--focus-water); }
-html[data-layout=focus] .focus-ground { fill: none; stroke: var(--focus-map-line); stroke-width: 1.1; }
-html[data-layout=focus] .focus-structure { fill: var(--panel); stroke: var(--focus-map-line); stroke-width: 1; }
-html[data-layout=focus] .focus-shore { stroke: var(--focus-path); stroke-width: 1.1; }
-html[data-layout=focus] .focus-path { stroke: var(--focus-path); stroke-width: 1; stroke-dasharray: 3 5; }
-html[data-layout=focus] .focus-npc { position: absolute; z-index: 2; top: var(--node-y); left: var(--node-x); transform: translate(-50%,-50%); min-width: 82px; min-height: 52px; padding: 7px 11px 7px 8px; display: flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--line); border-radius: 27px; background: var(--panel); box-shadow: 0 3px 10px #101f3910; white-space: nowrap; }
-html[data-layout=focus] .focus-npc b { font-size: 14px; font-weight: 600; }
-html[data-layout=focus] .focus-npc-mark { display: grid; place-items: center; width: 25px; height: 28px; color: var(--muted); }
-html[data-layout=focus] .focus-npc-mark .icon { width: 18px; height: 18px; }
-html[data-layout=focus] .focus-npc:hover { border-color: var(--green); }
-html[data-layout=focus] .focus-npc:active { background: var(--green-soft); }
-html[data-layout=focus] .focus-you { position: absolute; z-index: 1; top: 80%; left: 54%; display: flex; align-items: center; gap: 9px; color: var(--green); transform: translate(-50%,-50%); }
-html[data-layout=focus] .focus-you > span { display: block; width: 11px; height: 11px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 7px var(--green-soft); }
-html[data-layout=focus] .focus-you b { font-size: 12px; padding: 0 3px; background: var(--paper); }
-html[data-layout=focus] .focus-empty { position: absolute; top: 40%; width: 100%; text-align: center; color: var(--muted); font-size: 13px; }
-html[data-layout=focus] .focus-resources { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; min-height: 64px; gap: 12px; padding: 8px 0 5px; width: 100%; border-radius: 5px; }
-html[data-layout=focus] .focus-resources > span { display: flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 12px; }
-html[data-layout=focus] .focus-resources small { color: var(--muted); font-size: 11px; font-weight: 400; }
-html[data-layout=focus] .focus-resources b { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+html[data-layout=focus] .focus-world { min-height: 100%; display: flex; flex-direction: column; }
+html[data-layout=focus] .focus-scene { position: relative; isolation: isolate; container-type: size; display: flex; flex-direction: column; justify-content: space-between; flex: 1 0 335px; min-height: 335px; overflow: hidden; background: #1b282b; color: #faf9f1; }
+html[data-layout=focus] .focus-scene-art { position: absolute; top: 50%; left: 50%; width: max(100cqw, 150cqh); height: max(100cqh, 66.6667cqw); transform: translate(-50%, -50%); z-index: -2; background-image: url('/demo/scenes.webp'); background-size: 200% 300%; background-position: var(--scene-x) var(--scene-y); background-repeat: no-repeat; }
+html[data-layout=focus] .focus-scene:after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(180deg, #0a151adb 0%, #0d1c2030 23%, transparent 37%, #0b151958 62%, #0d181cdb 100%); }
+html[data-layout=focus] .focus-scene.is-night .focus-scene-art { filter: brightness(.58) saturate(.7); }
+html[data-layout=focus] .focus-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: calc(14px + env(safe-area-inset-top)) 20px 12px; min-height: 74px; }
+html[data-layout=focus] .focus-top > b { display: flex; align-items: center; gap: 11px; font-size: 18px; font-weight: 750; }
+html[data-layout=focus] .focus-top > b > span { font-size: 11px; font-weight: 400; color: #c3ccc8; border-left: 1px solid #ffffff3b; padding-left: 11px; }
+html[data-layout=focus] .focus-top time { margin-left: auto; display: flex; align-items: center; gap: 7px; font-size: 12px; font-variant-numeric: tabular-nums; color: #eef2e9; }
+html[data-layout=focus] .focus-top time .icon { width: 15px; height: 15px; opacity: .8; }
+html[data-layout=focus] .focus-top > button { display: grid; place-items: center; width: 44px; min-width: 44px; height: 44px; border-radius: 50%; background: #10202573; border: 1px solid #e0ebe21f; margin-right: -4px; backdrop-filter: blur(8px); }
+html[data-layout=focus] .focus-top button .icon { width: 23px; height: 23px; }
+html[data-layout=focus] .focus-location { padding: 20px 23px 26px; max-width: 100%; text-shadow: 0 2px 20px #020d1599; }
+html[data-layout=focus] .focus-location h1 { font: 740 39px/1.25 var(--sans); letter-spacing: -1.4px; }
+html[data-layout=focus] .focus-location p { font-size: 13px; color: #e3e9e0; line-height: 1.75; margin-top: 10px; max-width: 27em; }
+html[data-layout=focus] .focus-scene-urgency { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 9px; font-size: 11px; font-weight: 550; color: #ecd4ad; letter-spacing: .5px; }
+html[data-layout=focus] .focus-scene-urgency i { display: block; width: 5px; height: 5px; border-radius: 50%; background: #d7ae82; box-shadow: 0 0 12px #d7ae8255; }
+html[data-layout=focus] .focus-scene-urgency.is-danger { color: #ffc0ad; }
+html[data-layout=focus] .focus-scene-urgency.is-danger i { background: #efaa94; }
+html[data-layout=focus] .focus-console { display: flex; flex-direction: column; flex: 0 0 auto; gap: 12px; padding: 17px 20px 16px; background: var(--paper); border-top: 1px solid color-mix(in srgb, var(--ink) 9%, transparent); }
+html[data-layout=focus] .focus-people { min-width: 0; }
+html[data-layout=focus] .focus-people-heading { margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+html[data-layout=focus] .focus-people-heading h2 { font: 550 12px/1.4 var(--sans); color: var(--muted); }
+html[data-layout=focus] .focus-people-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+html[data-layout=focus] .focus-people[data-count='4'] .focus-people-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
+html[data-layout=focus] .focus-people[data-count='2'] .focus-people-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+html[data-layout=focus] .focus-npc { position: relative; isolation: isolate; min-width: 0; height: 137px; padding: 0; background: #243330; color: #f3f4ec; border-radius: 8px; overflow: hidden; border: 1px solid #2739323b; text-align: left; }
+html[data-layout=focus] .cinema-portrait { display: block; flex: 0 0 auto; background-image: url('/demo/portraits.webp'); background-size: 800% auto; background-position: calc(var(--portrait-index) / 7 * 100%) 20%; background-repeat: no-repeat; background-color: #2c3837; }
+html[data-layout=focus] .focus-npc > .cinema-portrait { position: absolute; inset: 0; z-index: -2; }
+html[data-layout=focus] .focus-npc:after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, #0c141606 24%, #0b151851 55%, #0b1518ed 100%); pointer-events: none; }
+html[data-layout=focus] .focus-npc-copy { position: absolute; bottom: 10px; left: 10px; right: 8px; display: flex; flex-direction: column; gap: 2px; }
+html[data-layout=focus] .focus-npc b { font-size: 15px; line-height: 1.5; font-weight: 650; }
+html[data-layout=focus] .focus-npc small { font-size: 10px; line-height: 1.45; color: #d0d9d3; overflow-wrap: anywhere; }
+html[data-layout=focus] .focus-npc > .icon { display: none; }
+html[data-layout=focus] .focus-npc.is-involved { border-color: #a78c6c; }
+html[data-layout=focus] .focus-npc.is-involved b { color: #f2d6b2; }
+html[data-layout=focus] .focus-npc:active { transform: scale(.975); }
+html[data-layout=focus] .focus-people[data-count='1'] .focus-people-cards { grid-template-columns: minmax(0, 1fr); }
+html[data-layout=focus] .focus-people[data-count='1'] .focus-npc { display: flex; align-items: center; gap: 15px; height: 112px; background: var(--panel); border-color: var(--line); color: var(--ink); padding-right: 15px; }
+html[data-layout=focus] .focus-people[data-count='1'] .focus-npc > .cinema-portrait { position: static; z-index: auto; width: 88px; height: 100%; }
+html[data-layout=focus] .focus-people[data-count='1'] .focus-npc:after { display: none; }
+html[data-layout=focus] .focus-people[data-count='1'] .focus-npc-copy { position: static; flex: 1; }
+html[data-layout=focus] .focus-people[data-count='1'] .focus-npc b { font-size: 19px; color: var(--ink); }
+html[data-layout=focus] .focus-people[data-count='1'] .focus-npc small { font-size: 12px; color: var(--muted); }
+html[data-layout=focus] .focus-people[data-count='1'] .focus-npc > .icon { display: block; width: 17px; color: var(--muted); }
+html[data-layout=focus] .focus-people[data-count='0'] { padding: 5px 0; }
+html[data-layout=focus] .focus-people[data-count='0'] .focus-people-heading { margin-bottom: 0; }
+html[data-layout=focus] .focus-resources { display: flex; align-items: center; justify-content: space-between; gap: 7px; width: 100%; min-height: 44px; flex-shrink: 0; font-variant-numeric: tabular-nums; border-radius: 5px; }
+html[data-layout=focus] .focus-resources > span { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+html[data-layout=focus] .focus-resources small { font-size: 11px; font-weight: 400; color: var(--muted); }
+html[data-layout=focus] .focus-resources b { font-size: 13px; font-weight: 650; }
 html[data-layout=focus] .focus-resources b > small { font-size: 10px; margin-left: 2px; }
-html[data-layout=focus] .focus-health-dot { width: 5px; height: 5px; background: var(--green); border-radius: 50%; }
+html[data-layout=focus] .focus-resources > .icon { width: 13px; height: 13px; color: var(--muted); }
+html[data-layout=focus] .focus-health-dot { width: 4px; height: 4px; border-radius: 50%; background: #6c8572; }
 html[data-layout=focus] .focus-resources .is-low :is(b,small) { color: var(--red); }
 html[data-layout=focus] .focus-resources .is-low .focus-health-dot { background: var(--red); }
-html[data-layout=focus] .focus-scene-actions { display: grid; grid-template-columns: 1.35fr 1fr; gap: 11px; flex-shrink: 0; }
-html[data-layout=focus] .focus-scene-actions > button { min-height: 54px; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 15px; font-weight: 600; border-radius: 12px; }
-html[data-layout=focus] .focus-primary { background: var(--green); color: var(--focus-button-text); }
+html[data-layout=focus] .focus-scene-actions { display: grid; grid-template-columns: minmax(0, 1fr) 85px; gap: 9px; flex-shrink: 0; }
+html[data-layout=focus] .focus-scene-actions > button { min-height: 54px; padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 15px; font-weight: 650; border-radius: 8px; }
+html[data-layout=focus] .focus-primary { background: var(--cinema-accent); color: var(--cinema-button-ink); border: 1px solid #a9835c33; box-shadow: inset 0 1px 0 #ffffff36; }
 html[data-layout=focus] .focus-secondary { background: var(--panel); border: 1px solid var(--line); }
-html[data-layout=focus] .focus-scene-actions .icon { width: 18px; height: 18px; }
-html[data-layout=focus] .focus-warning { display: flex; gap: 8px; align-items: center; flex-shrink: 0; min-height: 44px; width: 100%; font-size: 12px; color: var(--red); border-bottom: 1px solid var(--red-soft); }
+html[data-layout=focus] .focus-scene-actions .icon { width: 17px; height: 17px; }
+html[data-layout=focus] .focus-scene-actions .focus-secondary { justify-content: center; font-size: 14px; gap: 8px; padding-inline: 11px; font-weight: 500; }
+html[data-layout=focus] .focus-secondary .icon { width: 15px; height: 15px; color: var(--muted); }
+html[data-layout=focus] .focus-warning { display: flex; gap: 8px; align-items: center; flex-shrink: 0; min-height: 44px; padding: 7px 10px; width: 100%; color: var(--red); background: var(--red-soft); border-radius: 6px; font-size: 12px; }
 html[data-layout=focus] .focus-warning > span { flex: 1; }
-html[data-layout=focus] .focus-warning .icon { width: 16px; height: 16px; }
-html[data-layout=focus] .focus-feedback { flex-shrink: 0; max-height: 180px; overflow-y: auto; margin-top: 12px; border-radius: 10px; scrollbar-width: thin; }
+html[data-layout=focus] .focus-warning .icon { width: 15px; height: 15px; }
+html[data-layout=focus] .focus-feedback { flex-shrink: 0; max-height: 186px; overflow-y: auto; border-radius: 8px; scrollbar-width: thin; }
 html[data-layout=focus] .focus-feedback .reply-card { padding: 12px; border: 0; }
-html[data-layout=focus] .focus-feedback .reply-card p { font-size: 13px; line-height: 1.7; }
+html[data-layout=focus] .focus-feedback .reply-card p { font-size: 13px; line-height: 1.85; }
 html[data-layout=focus] .focus-feedback .change-tags { margin-top: 7px; }
 html[data-layout=focus] .focus-feedback .pill { font-size: 11px; }
-html[data-layout=focus] .bottom-nav { min-height: 65px; padding: 5px 25px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); box-shadow: none; background: var(--paper); display: flex; gap: 30px; }
-html[data-layout=focus] .bottom-nav button { min-height: 52px; padding: 5px 12px; gap: 3px; color: var(--muted); font-size: 11px; border-radius: 9px; flex-direction: column; }
-html[data-layout=focus] .bottom-nav .icon { width: 20px; height: 20px; }
+
+/* The same restrained controls continue below every page and inside sheets. */
+html[data-layout=focus] .bottom-nav { min-height: calc(66px + env(safe-area-inset-bottom)); padding: 6px 23px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); box-shadow: none; background: var(--paper); display: flex; gap: 29px; }
+html[data-layout=focus] .bottom-nav button { min-height: 52px; padding: 5px 12px; gap: 4px; color: var(--muted); font-size: 10px; border-radius: 8px; flex-direction: column; }
+html[data-layout=focus] .bottom-nav .icon { width: 21px; height: 21px; }
 html[data-layout=focus] .bottom-nav button.active { color: var(--green); }
 html[data-layout=focus] .bottom-nav button.active:before { display: none; }
-html[data-layout=focus] .topbar { min-height: 76px; padding: calc(13px + env(safe-area-inset-top)) 22px 13px; }
-html[data-layout=focus] .topbar h1 { font: 650 23px/1.3 var(--sans); margin: 0; }
+html[data-layout=focus] .topbar { min-height: 82px; padding: calc(15px + env(safe-area-inset-top)) 20px 15px; }
+html[data-layout=focus] .topbar h1 { font: 720 27px/1.3 var(--sans); margin: 0; letter-spacing: -.6px; }
 html[data-layout=focus] .topbar .eyebrow { display: none; }
-html[data-layout=focus] .icon-button { border: 0; background: transparent; color: var(--ink); }
-html[data-layout=focus] .panel { padding: 20px; border: 1px solid var(--line); border-radius: 13px; box-shadow: none; }
+html[data-layout=focus] .icon-button { border: 1px solid var(--line); border-radius: 9px; background: var(--panel); color: var(--ink); }
+html[data-layout=focus] .panel { padding: 19px; border: 1px solid var(--line); border-radius: 10px; box-shadow: none; }
 html[data-layout=focus] .section-title h2 { font-size: 16px; }
-html[data-layout=focus] .button { background: var(--green); color: var(--focus-button-text); border-radius: 10px; border-color: var(--green); }
+html[data-layout=focus] .button { background: var(--cinema-accent); color: var(--cinema-button-ink); border-radius: 8px; border-color: transparent; font-weight: 600; }
 html[data-layout=focus] .button.secondary { background: var(--panel); color: var(--ink); border-color: var(--line); }
-html[data-layout=focus] .pill { border-radius: 5px; font-size: 12px; }
-html[data-layout=focus] .identity-seal { border: 0; width: 48px; height: 48px; border-radius: 50%; font-size: 22px; }
-html[data-layout=focus] .identity-panel h2 { font-size: 23px; letter-spacing: 0; }
-html[data-layout=focus] .identity-panel > div { min-width: 140px; }
-html[data-layout=focus] .identity-panel p { font-size: 13px; }
-html[data-layout=focus] .attribute-value b { font-size: 25px; }
-html[data-layout=focus] .attribute-explain > p { font-size: 12px; }
-html[data-layout=focus] .focus-person-links { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
-html[data-layout=focus] .focus-person-links > button { display: flex; align-items: center; gap: 11px; min-height: 72px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; font-size: 15px; font-weight: 600; }
+html[data-layout=focus] .pill { border-radius: 4px; font-size: 11px; }
+html[data-layout=focus] .focus-person-links { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+html[data-layout=focus] .focus-person-links > button { display: flex; align-items: center; gap: 11px; min-height: 72px; background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: 15px; font-size: 15px; font-weight: 600; }
 html[data-layout=focus] .focus-person-links .icon { color: var(--green); width: 20px; height: 20px; }
 html[data-layout=focus] .focus-person-links .icon:last-child { margin-left: auto; width: 15px; height: 15px; color: var(--muted); }
-html[data-layout=focus] .focus-identity h2 { font-size: 26px; margin: 4px 0 23px; }
+html[data-layout=focus] .focus-identity { padding: 22px 20px; }
+html[data-layout=focus] .focus-identity h2 { font-size: 27px; margin: 4px 0 23px; }
+html[data-layout=focus] .focus-identity-head { display: flex; align-items: center; gap: 14px; margin-bottom: 27px; }
+html[data-layout=focus] .focus-identity-head h2 { margin: 3px 0 0; }
+html[data-layout=focus] .cinema-player-mark { display: grid; place-items: center; width: 65px; height: 74px; background: var(--soft); border: 1px solid var(--line); border-radius: 8px; color: var(--muted); }
+html[data-layout=focus] .cinema-player-mark .icon { width: 33px; height: 33px; stroke-width: 1; }
 html[data-layout=focus] .focus-status-bars { display: grid; gap: 17px; margin-bottom: 24px; }
-html[data-layout=focus] .focus-status-bars .resource > div:first-child { margin-bottom: 10px; }
+html[data-layout=focus] .focus-status-bars .resource > div:first-child { margin-bottom: 9px; }
 html[data-layout=focus] .focus-status-bars .resource b { font-size: 13px; }
-html[data-layout=focus] .focus-status-bars .hp .track i { background: var(--red); }
+html[data-layout=focus] .focus-status-bars .hp .track i { background: #a77561; }
 html[data-layout=focus] :is(.focus-attributes,.focus-relations) { padding-block: 0; }
-html[data-layout=focus] :is(.focus-attributes,.focus-relations) > summary { min-height: 62px; display: flex; align-items: center; justify-content: space-between; gap: 15px; cursor: pointer; font-size: 15px; font-weight: 600; list-style: none; }
+html[data-layout=focus] :is(.focus-attributes,.focus-relations) > summary { min-height: 61px; display: flex; align-items: center; justify-content: space-between; gap: 15px; cursor: pointer; font-size: 15px; font-weight: 600; list-style: none; }
 html[data-layout=focus] :is(.focus-attributes,.focus-relations) > summary::-webkit-details-marker { display: none; }
 html[data-layout=focus] :is(.focus-attributes,.focus-relations) > summary .icon { width: 16px; height: 16px; color: var(--muted); }
 html[data-layout=focus] :is(.focus-attributes,.focus-relations)[open] > summary .icon { transform: rotate(90deg); }
 html[data-layout=focus] :is(.focus-attributes,.focus-relations) > :not(summary) { margin-bottom: 20px; }
 html[data-layout=focus] .focus-relations .relation-row { justify-content: space-between; padding-block: 10px; margin-bottom: 0; }
-html[data-layout=focus] .facts-grid { gap: 19px 20px; }
+html[data-layout=focus] .facts-grid { gap: 18px 20px; }
 html[data-layout=focus] .facts-grid span { font-size: 12px; }
 html[data-layout=focus] .facts-grid b { font-size: 15px; }
-html[data-layout=focus] .money-card h2 { font-size: 30px; }
+html[data-layout=focus] .money-card h2 { font-size: 32px; }
 html[data-layout=focus] .money-card > p { display: none; }
-html[data-layout=focus] .item-glyph { border-radius: 9px; font-size: 19px; }
+html[data-layout=focus] .item-glyph { border-radius: 7px; font-size: 19px; }
 html[data-layout=focus] .skill-title h2 { letter-spacing: 0; font-size: 18px; }
 html[data-layout=focus] .stance-card > b { letter-spacing: 0; font-size: 20px; }
-html[data-layout=focus] .large-map-panel .section-title h2 { letter-spacing: 0; font-size: 24px; }
-html[data-layout=focus] .town-map { border-radius: 9px; }
-html[data-layout=focus] .map-roads line { stroke: var(--focus-path); }
-html[data-layout=focus] .map-roads .river { stroke: var(--focus-water); }
-html[data-layout=focus] .map-node span { background: var(--soft); }
-html[data-layout=focus] .map-water-label { letter-spacing: 0; }
-html[data-layout=focus] .focus-route-map { padding: 17px 13px; }
+html[data-layout=focus] .first-steps h2 { font-size: 24px; letter-spacing: -.5px; }
+html[data-layout=focus] .first-steps > p { font-size: 13px; color: var(--muted); }
+html[data-layout=focus] .focus-bag-routes { display: grid; gap: 10px; }
+html[data-layout=focus] .focus-route-map { padding: 18px 12px; }
 html[data-layout=focus] .focus-route-map .section-title { padding-inline: 5px; }
+html[data-layout=focus] .focus-route-map .section-title h2 { font-size: 20px; letter-spacing: -.4px; }
 html[data-layout=focus] .focus-route-map .section-title > span { font-size: 11px; }
-html[data-layout=focus] .focus-route-map .town-map { height: min(52dvh,390px); min-height: 320px; }
-html[data-layout=focus] .focus-route-map .map-node { width: 88px; min-height: 65px; gap: 7px; }
+html[data-layout=focus] .focus-route-map .town-map { height: min(52dvh,420px); min-height: 360px; background: var(--paper); border-radius: 8px; }
+html[data-layout=focus] .map-roads line { stroke: color-mix(in srgb, var(--muted) 50%, var(--paper)); stroke-width: .45; stroke-dasharray: 1 1.4; }
+html[data-layout=focus] .map-roads .river { stroke: color-mix(in srgb, var(--blue) 20%, var(--paper)); stroke-width: 13; }
+html[data-layout=focus] .map-water-label { letter-spacing: 3px; font-size: 12px; color: var(--blue); }
+html[data-layout=focus] .focus-route-map .map-node { width: 76px; min-height: 76px; gap: 5px; }
 html[data-layout=focus] .focus-route-map .map-node:disabled { opacity: 1; }
-html[data-layout=focus] .focus-route-map .map-node span { font-size: 13px; white-space: normal; text-align: center; line-height: 1.4; padding: 2px; border-radius: 3px; }
-html[data-layout=focus] .focus-route-map .map-node small { display: block; font-size: 10px; font-weight: 400; margin-top: 5px; line-height: 1.4; color: var(--muted); }
+html[data-layout=focus] .focus-route-map .map-node i { width: 43px; height: 31px; background-color: #243330; background-image: url('/demo/scenes.webp'); background-size: 200% 300%; background-position: var(--scene-x) var(--scene-y); border-radius: 5px; border: 1px solid var(--line); box-shadow: 0 0 0 3px var(--paper); }
+html[data-layout=focus] .map-node[data-ui='travel:dock'] { --scene-x: 0%; --scene-y: 0%; }
+html[data-layout=focus] .map-node[data-ui='travel:street'] { --scene-x: 100%; --scene-y: 0%; }
+html[data-layout=focus] .map-node[data-ui='travel:tea'] { --scene-x: 0%; --scene-y: 50%; }
+html[data-layout=focus] .map-node[data-ui='travel:yard'] { --scene-x: 100%; --scene-y: 50%; }
+html[data-layout=focus] .map-node[data-ui='travel:inn'] { --scene-x: 0%; --scene-y: 100%; }
+html[data-layout=focus] .map-node[data-ui='travel:yamen'] { --scene-x: 100%; --scene-y: 100%; }
+html[data-layout=focus] .focus-route-map .map-node.here i { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+html[data-layout=focus] .focus-route-map .map-node span { font-size: 12px; white-space: normal; text-align: center; line-height: 1.4; padding: 2px 3px; border-radius: 3px; background: var(--paper); color: var(--ink); }
+html[data-layout=focus] .focus-route-map .map-node.here span { color: var(--green); }
+html[data-layout=focus] .focus-route-map .map-node small { display: block; font-size: 10px; font-weight: 400; margin-top: 3px; line-height: 1.4; color: var(--muted); }
 html[data-layout=focus] .focus-route-map .map-north { display: none; }
 html[data-layout=focus] .focus-route-map > .fine-print { padding: 15px 5px 1px; font-size: 12px; }
-html[data-layout=focus] .place-list { gap: 0; }
-html[data-layout=focus] .place-card { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; padding-inline: 0; }
-html[data-layout=focus] .place-card.current { border-color: var(--line); background: transparent; }
-html[data-layout=focus] .place-number { font-family: var(--sans); color: var(--muted); }
-html[data-layout=focus] .modal-scrim { padding: 0; align-items: flex-end; background: #0c142849; backdrop-filter: blur(3px); }
-html[data-layout=focus] .modal { max-width: var(--phone-width); max-height: min(85dvh,720px); border: 1px solid var(--line); border-bottom: 0; border-radius: 22px 22px 0 0; box-shadow: 0 -15px 60px #090f2520; }
-html[data-layout=focus] .modal > header { min-height: 77px; padding: 14px 21px 10px; border-bottom: 1px solid var(--line); }
-html[data-layout=focus] .modal > header > h2 { font: 650 21px/1.3 var(--sans); letter-spacing: 0; }
-html[data-layout=focus] .modal-body { padding: 20px 22px calc(25px + env(safe-area-inset-bottom)); }
+html[data-layout=focus] .modal-scrim { padding: 0; align-items: flex-end; background: #071114a8; backdrop-filter: blur(6px); }
+html[data-layout=focus] .modal { max-width: var(--phone-width); max-height: min(88dvh,760px); border: 1px solid var(--line); border-bottom: 0; border-radius: 18px 18px 0 0; background: var(--paper); box-shadow: 0 -15px 60px #0005; }
+html[data-layout=focus] .modal > header { min-height: 72px; padding: 13px 20px 11px; border-bottom: 1px solid var(--line); }
+html[data-layout=focus] .modal > header > h2 { font: 700 22px/1.3 var(--sans); letter-spacing: -.4px; }
+html[data-layout=focus] .modal > header .icon-button { background: transparent; border: 0; }
+html[data-layout=focus] .modal-body { padding: 18px 20px calc(23px + env(safe-area-inset-bottom)); }
 html[data-layout=focus] .modal-intro { font-size: 14px; line-height: 1.75; }
-html[data-layout=focus] .focus-person-intro { margin-bottom: 17px; }
-html[data-layout=focus] .focus-person-intro :is(p,small) { display: block; font-size: 13px; color: var(--muted); line-height: 1.7; }
-html[data-layout=focus] .focus-person-intro p { margin-top: 7px; }
+html[data-layout=focus] .focus-person-intro { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+html[data-layout=focus] .focus-person-intro > .cinema-portrait { width: 79px; height: 95px; border-radius: 7px; border: 1px solid var(--line); }
+html[data-layout=focus] .focus-person-copy { flex: 1; min-width: 0; }
+html[data-layout=focus] .focus-person-intro :is(p,small) { display: block; font-size: 12px; color: var(--muted); line-height: 1.75; }
+html[data-layout=focus] .focus-person-intro p { margin-top: 7px; color: var(--ink); }
 html[data-layout=focus] .focus-action-list { display: grid; grid-template-columns: minmax(0,1fr); gap: 0; }
-html[data-layout=focus] .focus-action-list .action-card { min-height: 68px; padding: 16px 0; background: transparent; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; box-shadow: none; }
+html[data-layout=focus] .focus-action-list .action-card { min-height: 68px; padding: 15px 1px; background: transparent; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; box-shadow: none; }
 html[data-layout=focus] .focus-action-list .action-card:last-child { border-bottom: 0; }
 html[data-layout=focus] .focus-action-list .action-card:disabled { opacity: 1; color: var(--muted); }
 html[data-layout=focus] .focus-action-list .action-card:disabled b { color: var(--muted); }
@@ -179,7 +206,7 @@ html[data-layout=focus] .focus-action-list .action-card:hover:not(:disabled) { b
 html[data-layout=focus] .focus-action-list .action-top { flex-wrap: wrap; column-gap: 8px; row-gap: 4px; }
 html[data-layout=focus] .focus-action-list .action-top b { font-size: 15px; }
 html[data-layout=focus] .focus-action-list .action-top > span { margin-left: auto; font-size: 12px; flex-basis: auto; }
-html[data-layout=focus] .focus-action-list .action-top > .icon { display: none; }
+html[data-layout=focus] .focus-action-list .action-top > .icon { margin-left: auto; width: 16px; height: 16px; }
 html[data-layout=focus] .focus-action-list .action-card p { font-size: 12px; line-height: 1.75; margin-top: 6px; }
 html[data-layout=focus] .focus-action-cost { display: block; margin-top: 5px; font-size: 12px; line-height: 1.6; color: var(--muted); }
 html[data-layout=focus] .focus-unavailable { border-top: 1px solid var(--line); }
@@ -187,76 +214,118 @@ html[data-layout=focus] .focus-unavailable > summary { display: flex; align-item
 html[data-layout=focus] .focus-unavailable > summary::-webkit-details-marker { display: none; }
 html[data-layout=focus] .focus-unavailable > summary .icon { width: 15px; height: 15px; }
 html[data-layout=focus] .focus-unavailable[open] > summary .icon { transform: rotate(90deg); }
-html[data-layout=focus] .focus-sheet .reply-card { margin-top: 15px; }
+html[data-layout=focus] .focus-sheet .reply-card { margin-top: 12px; margin-bottom: 12px; }
 html[data-layout=focus] .focus-sheet .reply-card p { font-size: 14px; }
 html[data-layout=focus] .focus-sheet details { font-size: 13px; color: var(--muted); }
 html[data-layout=focus] .focus-sheet summary { padding-block: 10px; cursor: pointer; min-height: 44px; }
 html[data-layout=focus] .focus-menu-grid { display: grid; gap: 0; }
-html[data-layout=focus] .focus-menu-grid > button { display: flex; align-items: center; justify-content: flex-start; gap: 13px; min-height: 59px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; padding: 10px 2px; text-align: left; font-size: 15px; }
+html[data-layout=focus] .focus-menu-grid > button { display: flex; align-items: center; justify-content: flex-start; gap: 13px; min-height: 59px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; padding: 10px 2px; text-align: left; font-size: 15px; font-weight: 500; }
 html[data-layout=focus] .focus-menu-grid > button:last-child { border: 0; }
 html[data-layout=focus] .focus-menu-grid .icon { color: var(--muted); }
+html[data-layout=focus] .reply-card { background: var(--green-soft); }
 html[data-layout=focus] .reply-card p { font-family: var(--sans); }
 html[data-layout=focus] .case-record h3 { letter-spacing: 0; }
+
+/* A compact origin choice lives under the same scene, before any save is made. */
 html[data-layout=focus] .focus-arrival { background: var(--paper); }
-html[data-layout=focus] .focus-arrival .arrival-scroll { padding-top: env(safe-area-inset-top); }
-html[data-layout=focus] .focus-arrival-top { display: flex; align-items: center; justify-content: space-between; min-height: 64px; padding: 8px 24px; }
-html[data-layout=focus] .focus-arrival-top > span { font-size: 17px; font-weight: 700; }
-html[data-layout=focus] .focus-arrival-top > button { margin-right: -10px; letter-spacing: 2px; }
-html[data-layout=focus] .focus-arrival-heading { padding: 12px 25px 29px; }
-html[data-layout=focus] .focus-arrival-heading h1 { font: 700 31px/1.3 var(--sans); letter-spacing: -.7px; margin: 0 0 14px; }
-html[data-layout=focus] .focus-arrival-heading p { font-size: 14px; line-height: 1.85; color: var(--muted); }
-html[data-layout=focus] .focus-arrival .arrival-origins { padding: 0 22px 22px; gap: 11px; }
-html[data-layout=focus] .origin-card { border-radius: 13px; padding: 17px 18px; text-align: left; }
-html[data-layout=focus] .origin-card .section-title { margin: 0 0 5px; }
-html[data-layout=focus] .origin-card h3 { font-size: 16px; font-weight: 600; }
-html[data-layout=focus] .origin-card p { font-size: 13px; line-height: 1.7; color: var(--muted); }
-html[data-layout=focus] .origin-card.chosen { border-color: var(--green); background: var(--green-soft); }
-html[data-layout=focus] .origin-card.chosen h3 { color: var(--green); }
-html[data-layout=focus] .focus-arrival .origin-card:not(.chosen) { padding-block: 17px; }
-html[data-layout=focus] .focus-arrival .origin-card:not(.chosen) p { font-size: 13px; line-height: 1.7; -webkit-line-clamp: unset; display: block; }
-html[data-layout=focus] .focus-arrival .origin-card > small { display: block; font-size: 13px; line-height: 1.7; }
-html[data-layout=focus] .focus-arrival .origin-card.chosen > p { margin-top: 9px; }
-html[data-layout=focus] .focus-arrival .origin-card .origin-description { margin-top: 10px; border-top: 1px solid color-mix(in srgb,var(--green) 15%,transparent); padding-top: 10px; }
-html[data-layout=focus] .focus-arrival .arrival-footer { background: var(--paper); padding: 14px 22px calc(17px + env(safe-area-inset-bottom)); box-shadow: none; }
-html[data-layout=focus] .focus-arrival .arrival-footer .button { min-height: 54px; border-radius: 12px; }
+html[data-layout=focus] .focus-arrival .arrival-scroll { padding: 0 0 12px; }
+html[data-layout=focus] .focus-arrival-hero { --arrival-scene-height: 335px; position: relative; isolation: isolate; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; min-height: 335px; color: #f6f7ef; background-color: #1b282b; }
+html[data-layout=focus] .focus-arrival-hero:before { content: ''; position: absolute; top: 50%; left: 50%; width: max(100%, calc(var(--arrival-scene-height) * 1.5)); height: auto; aspect-ratio: 3 / 2; transform: translate(-50%, -50%); z-index: -2; background: url('/demo/scenes.webp') 0 0 / 200% 300% no-repeat; }
+html[data-layout=focus] .focus-arrival-hero:after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, #0c151bb5 0%, #0c151b24 28%, #0c151b55 47%, #0c151be8 100%); }
+html[data-layout=focus] .focus-arrival-top { display: flex; align-items: center; justify-content: space-between; min-height: 74px; padding: calc(14px + env(safe-area-inset-top)) 23px 12px; }
+html[data-layout=focus] .focus-arrival-top > span { font-size: 20px; font-weight: 750; }
+html[data-layout=focus] .focus-arrival-top > button { background: #0c1b2066; color: #f6f7ef; border: 1px solid #f6f7ef22; border-radius: 50%; font-weight: 700; }
+html[data-layout=focus] .focus-arrival-heading { padding: 22px 24px 25px; }
+html[data-layout=focus] .focus-arrival-heading h1 { font: 750 31px/1.4 var(--sans); letter-spacing: -1px; margin: 0 0 12px; max-width: 12em; text-wrap: balance; }
+html[data-layout=focus] .focus-arrival-heading p { font-size: 13px; line-height: 1.85; color: #d4ddd7; max-width: 24em; }
+html[data-layout=focus] .focus-origin-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 19px 20px 0; }
+html[data-layout=focus] .focus-origin-heading h2 { font-size: 14px; font-weight: 650; }
+html[data-layout=focus] .focus-origin-heading > span { font-size: 11px; color: var(--muted); }
+html[data-layout=focus] .focus-arrival .arrival-origins { grid-template-columns: repeat(2, minmax(0,1fr)); padding: 12px 20px 0; gap: 10px; }
+html[data-layout=focus] .focus-arrival .origin-card { display: flex; align-items: flex-start; gap: 9px; min-height: 100px; padding: 15px 11px; margin: 0; border: 1px solid var(--line); border-radius: 8px; text-align: left; position: relative; }
+html[data-layout=focus] .focus-arrival .origin-card:not(.chosen) { padding-block: 15px; }
+html[data-layout=focus] .focus-origin-icon { display: grid; place-items: center; flex: 0 0 25px; width: 25px; height: 27px; color: var(--muted); }
+html[data-layout=focus] .focus-origin-icon .icon { width: 21px; height: 21px; }
+html[data-layout=focus] .focus-origin-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 6px; }
+html[data-layout=focus] .focus-origin-copy :is(b,h3) { font-size: 15px; line-height: 1.65; font-weight: 650; }
+html[data-layout=focus] .focus-origin-copy :is(small,p) { display: block; font-size: 11px; line-height: 1.6; color: var(--muted); }
+html[data-layout=focus] .modal-body > .origin-card { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; padding: 16px; position: relative; border-radius: 8px; }
+html[data-layout=focus] .modal-body > .origin-card > :is(p,.confirm-note) { flex-basis: 100%; font-size: 12px; line-height: 1.75; margin-top: 3px; }
+html[data-layout=focus] .modal-body > .origin-card > .origin-check { position: absolute; right: 12px; top: 12px; width: 15px; height: 15px; color: var(--green); }
+html[data-layout=focus] .focus-arrival .origin-card > .icon:last-child { position: absolute; top: 7px; right: 7px; width: 12px; height: 12px; color: var(--green); }
+html[data-layout=focus] .focus-arrival .origin-card.chosen { border-color: var(--green); background: var(--green-soft); }
+html[data-layout=focus] .focus-arrival .origin-card.chosen .focus-origin-icon { color: var(--green); }
+html[data-layout=focus] .focus-origin-summary { margin: 13px 22px 0; font-size: 12px; line-height: 1.8; color: var(--muted); min-height: 44px; }
+html[data-layout=focus] .focus-origin-summary p { font-size: 12px; line-height: 1.8; }
+html[data-layout=focus] .focus-arrival .arrival-footer { background: var(--paper); padding: 13px 20px calc(16px + env(safe-area-inset-bottom)); box-shadow: none; border-top: 1px solid var(--line); }
+html[data-layout=focus] .focus-arrival .arrival-footer .button { min-height: 54px; border-radius: 8px; justify-content: space-between; padding-inline: 19px; }
 html[data-layout=focus] .focus-arrival .arrival-footer p { font-size: 11px; }
-html[data-layout=focus] .sample-focus { background: #f4f6f9; border-color: #d8dfed; padding: 12px; }
-html[data-layout=focus] .sample-focus .layout-sample-scene { height: 76px; border: 1px solid #c8d1e2; background: linear-gradient(100deg,transparent 64%,#e1e8f8 65%); border-radius: 2px; }
-html[data-layout=focus] .sample-focus .layout-sample-actions { margin-top: 11px; height: 15px; border-radius: 3px; background: #315ee8; }
+html[data-layout=focus] .sample-focus { background: #182124; border-color: #3a4847; padding: 9px; }
+html[data-layout=focus] .sample-focus .layout-sample-scene { height: 76px; background-image: url('/demo/scenes.webp'); background-size: 200% 300%; background-position: 0 0; border-radius: 3px; }
+html[data-layout=focus] .sample-focus .layout-sample-lines { display: flex; gap: 4px; margin-top: 6px; }
+html[data-layout=focus] .sample-focus .layout-sample-lines i { width: 19px; height: 20px; border-radius: 2px; background: #4b5b55; }
+html[data-layout=focus] .sample-focus .layout-sample-actions { margin-top: 7px; height: 10px; border-radius: 3px; background: #d7ae82; }
 @media (max-width:359px) {
-  html[data-layout=focus] .focus-world { padding-inline: 17px; }
-  html[data-layout=focus] .focus-top { gap: 12px; }
-  html[data-layout=focus] .focus-top time { gap: 8px; }
-  html[data-layout=focus] .focus-location h1 { font-size: 30px; }
+  html[data-layout=focus] .focus-top { padding-inline: 16px; gap: 10px; }
+  html[data-layout=focus] .focus-top > b { gap: 8px; }
+  html[data-layout=focus] .focus-top > b > span { padding-left: 8px; }
+  html[data-layout=focus] .focus-location { padding-inline: 18px; }
+  html[data-layout=focus] .focus-location h1 { font-size: 34px; }
   html[data-layout=focus] .focus-location p { font-size: 12px; }
-  html[data-layout=focus] .focus-resources { gap: 6px; }
+  html[data-layout=focus] .focus-console { padding-inline: 16px; }
+  html[data-layout=focus] .focus-resources { gap: 5px; }
   html[data-layout=focus] .focus-resources > span { gap: 4px; }
   html[data-layout=focus] .focus-health-dot { display: none; }
-  html[data-layout=focus] .focus-npc { gap: 4px; min-width: 76px; padding-inline: 7px; }
-  html[data-layout=focus] .focus-npc b { font-size: 13px; }
-  html[data-layout=focus] .focus-npc-mark { width: 21px; }
+  html[data-layout=focus] .focus-npc-copy { left: 8px; right: 6px; }
+  html[data-layout=focus] .focus-npc b { font-size: 14px; }
+  html[data-layout=focus] .focus-scene-actions { grid-template-columns: minmax(0,1fr) 76px; gap: 8px; }
+  html[data-layout=focus] .focus-scene-actions > button { padding-inline: 12px; font-size: 14px; }
+  html[data-layout=focus] .focus-scene-actions .focus-secondary { font-size: 13px; padding-inline: 9px; gap: 5px; }
   html[data-layout=focus] .play-scroll { padding-inline: 16px; }
   html[data-layout=focus][data-page=world] .play-scroll { padding-inline: 0; }
   html[data-layout=focus] .topbar { padding-inline: 17px; }
-  html[data-layout=focus] .bottom-nav { gap: 20px; padding-inline: 20px; }
-  html[data-layout=focus] .panel { padding: 17px; }
-  html[data-layout=focus] .focus-arrival-heading { padding-inline: 22px; }
-  html[data-layout=focus] .focus-arrival-heading h1 { font-size: 28px; }
+  html[data-layout=focus] .bottom-nav { gap: 22px; padding-inline: 20px; }
+  html[data-layout=focus] .panel { padding: 16px; }
+  html[data-layout=focus] .focus-route-map { padding-inline: 10px; }
+  html[data-layout=focus] .focus-arrival-heading { padding-inline: 20px; }
+  html[data-layout=focus] .focus-arrival-heading h1 { font-size: 27px; }
+  html[data-layout=focus] .focus-arrival .arrival-origins { padding-inline: 16px; gap: 8px; }
+  html[data-layout=focus] .focus-arrival .origin-card { gap: 6px; padding-inline: 9px; }
+  html[data-layout=focus] .focus-origin-icon { width: 21px; flex-basis: 21px; }
+  html[data-layout=focus] .focus-origin-icon .icon { width: 18px; height: 18px; }
+  html[data-layout=focus] .focus-origin-copy :is(b,h3) { font-size: 14px; }
+  html[data-layout=focus] .focus-origin-summary { margin-inline: 18px; }
+  html[data-layout=focus] .focus-origin-heading { margin-inline: 16px; }
   html[data-layout=focus] .modal-body { padding-inline: 18px; }
 }
 @media (max-height:700px) {
-  html[data-layout=focus] .focus-top { min-height: 54px; }
-  html[data-layout=focus] .focus-location { padding: 7px 0 14px; }
-  html[data-layout=focus] .focus-location h1 { font-size: 29px; }
-  html[data-layout=focus] .focus-location p { margin-top: 7px; }
-  html[data-layout=focus] .focus-scene-map { flex-basis: 175px; min-height: 175px; }
-  html[data-layout=focus] .focus-resources { min-height: 52px; }
-  html[data-layout=focus] .focus-world { padding-bottom: 10px; }
+  html[data-layout=focus] .focus-scene { flex-basis: 190px; min-height: 190px; }
+  html[data-layout=focus] .focus-top { min-height: 60px; padding-top: calc(8px + env(safe-area-inset-top)); padding-bottom: 6px; }
+  html[data-layout=focus] .focus-location { padding-top: 12px; padding-bottom: 17px; }
+  html[data-layout=focus] .focus-location h1 { font-size: 31px; }
+  html[data-layout=focus] .focus-location p { margin-top: 6px; font-size: 12px; }
+  html[data-layout=focus] .focus-scene-urgency { margin-bottom: 5px; font-size: 10px; }
+  html[data-layout=focus] .focus-console { gap: 8px; padding-top: 11px; padding-bottom: 11px; }
+  html[data-layout=focus] .focus-people-heading { margin-bottom: 7px; }
+  html[data-layout=focus] .focus-npc { height: 103px; }
+  html[data-layout=focus] .focus-people[data-count='1'] .focus-npc { height: 91px; }
+  html[data-layout=focus] .focus-people[data-count='1'] .focus-npc > .cinema-portrait { width: 73px; }
+  html[data-layout=focus] .focus-npc-copy { bottom: 7px; gap: 0; }
+  html[data-layout=focus] .focus-npc b { font-size: 14px; }
+  html[data-layout=focus] .focus-npc small { font-size: 10px; }
   html[data-layout=focus] .focus-scene-actions > button { min-height: 48px; }
   html[data-layout=focus] .focus-feedback { max-height: 150px; }
-  html[data-layout=focus] .focus-arrival-heading { padding-top: 0; padding-bottom: 20px; }
-  html[data-layout=focus] .focus-arrival-heading h1 { font-size: 28px; margin-bottom: 10px; }
-  html[data-layout=focus] .focus-arrival .arrival-origins { gap: 9px; }
+  html[data-layout=focus] .focus-arrival-hero { --arrival-scene-height: 210px; min-height: 210px; }
+  html[data-layout=focus] .focus-arrival-top { min-height: 57px; padding-top: calc(7px + env(safe-area-inset-top)); padding-bottom: 6px; }
+  html[data-layout=focus] .focus-arrival-heading { padding-top: 12px; padding-bottom: 18px; }
+  html[data-layout=focus] .focus-arrival-heading h1 { font-size: 26px; line-height: 1.35; margin-bottom: 8px; }
+  html[data-layout=focus] .focus-arrival-heading p { font-size: 12px; line-height: 1.7; }
+  html[data-layout=focus] .focus-origin-heading { margin-top: 12px; }
+  html[data-layout=focus] .focus-arrival .arrival-origins { padding-top: 9px; gap: 8px; }
   html[data-layout=focus] .focus-arrival .origin-card,
-  html[data-layout=focus] .focus-arrival .origin-card:not(.chosen) { padding-block: 13px; }
+  html[data-layout=focus] .focus-arrival .origin-card:not(.chosen) { min-height: 82px; padding-block: 11px; }
+  html[data-layout=focus] .focus-origin-summary { margin-top: 10px; font-size: 11px; line-height: 1.65; }
+  html[data-layout=focus] .focus-origin-summary p { font-size: 11px; line-height: 1.65; }
+  html[data-layout=focus] .focus-arrival .arrival-footer { padding-top: 10px; padding-bottom: calc(11px + env(safe-area-inset-bottom)); }
+  html[data-layout=focus] .focus-arrival .arrival-footer .button { min-height: 48px; }
 }

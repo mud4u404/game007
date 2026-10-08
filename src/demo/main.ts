@@ -27,7 +27,7 @@ const SAVE_KEY = 'game007-sandbox-demo-v1';
 const THEME_KEY = 'game007-sandbox-demo-theme';
 const LAYOUT_KEY = 'game007-sandbox-demo-layout';
 const LAYOUTS = [
-  { id: 'focus', name: '留白', number: '新', note: '点人交涉，展开行动，随时动身。', detail: '默认界面' },
+  { id: 'focus', name: '身在江湖', number: '新', note: '走进眼前的场景，认识人，再决定做什么。', detail: '默认界面' },
   { id: 'cards', name: '场景探索', number: '一', note: '人在景中，路在脚下。点眼前的人，再决定怎么做。', detail: '山水长卷 · 人物定位与去路同屏' },
   { id: 'scroll', name: '事务总览', number: '二', note: '接着上回的事。线索、待办与下一步放在一起。', detail: '市井告示 · 从未完事务直接行动' },
   { id: 'compact', name: '情境操作', number: '三', note: '先看眼下处境，再选适合此刻的行动。', detail: '掌上游侠 · 状态建议与拇指快捷操作' },
@@ -107,18 +107,20 @@ const origin = () => ORIGINS.find(o => o.id === state.origin)!;
 const knownAs = () => state.renown >= 12 ? '镇上渐有人识' : state.renown > 0 ? '略有耳闻' : '默默无名';
 const pill = (text: string, tone = '') => `<span class="pill ${tone}">${esc(text)}</span>`;
 const bar = (label: string, now: number, max: number, cls: string) => `<div class="resource ${cls}"><div><span>${label}</span><b>${max > 0 ? `${Math.ceil(now)}<small> / ${max}</small>` : '未习内功'}</b></div><div class="track"><i style="width:${max > 0 ? Math.max(0, Math.min(100, now / max * 100)) : 0}%"></i></div></div>`;
+const portrait = (id: string): string => `<span class="cinema-portrait" style="--portrait-index:${Math.max(0, NPCS.findIndex(n => n.id === id))}" aria-hidden="true"></span>`;
 
 function originCard(o: typeof ORIGINS[number], arrival = false): string {
   const on = arrival ? o.id === chosenOrigin : o.id === state.origin;
   if (layout === 'focus') {
     const perks: Record<OriginId, string> = { porter: '气力好，搬货挣得多', courier: '脚程快，赶路更省时', scholar: '识文断字，查账更在行', apprentice: '体魄与根骨均衡，尚未入门' };
-    return `<button class="origin-card ${on ? 'chosen' : ''}" data-ui="${arrival ? 'choose-origin' : 'origin'}:${o.id}" aria-pressed="${on}"><div class="section-title"><h3>${esc(o.name)}</h3>${on ? icon('check') : icon('arrow')}</div><small>${perks[o.id]}</small>${on ? `<p>${esc(o.description)}</p>` : ''}${!arrival && confirmOrigin === o.id ? '<strong class="confirm-note">再点一次，确认重新开始</strong>' : ''}</button>`;
+    const glyph = { porter: 'bag', courier: 'world', scholar: 'book', apprentice: 'sword' }[o.id];
+    return `<button class="origin-card ${on ? 'chosen' : ''}" data-ui="${arrival ? 'choose-origin' : 'origin'}:${o.id}" aria-pressed="${on}"><span class="focus-origin-icon">${icon(glyph)}</span><span class="focus-origin-copy"><b>${esc(o.name)}</b><small>${perks[o.id]}</small></span>${on ? icon('check', 'origin-check') : ''}${!arrival && on ? `<p>${esc(o.description)}</p>` : ''}${!arrival && confirmOrigin === o.id ? '<strong class="confirm-note">再点一次，确认重新开始</strong>' : ''}</button>`;
   }
   return `<button class="origin-card ${on ? 'chosen' : ''}" data-ui="${arrival ? 'choose-origin' : 'origin'}:${o.id}" aria-pressed="${on}"><div class="section-title"><h3>${esc(o.name)}</h3>${pill(arrival && on ? '选此出身' : o.title)}</div><p>${esc(o.description)}</p><div class="origin-attrs">${ATTRS.map(a => `<span>${a.name}<b>${o.attrs[a.id]}</b></span>`).join('')}</div><small>${esc(o.perk)}</small>${!arrival && confirmOrigin === o.id ? '<strong class="confirm-note">再点一次，确认重新开始</strong>' : ''}</button>`;
 }
 
 function arrivalView(): string {
-  if (layout === 'focus') return `<main class="arrival-screen focus-arrival"><div class="arrival-scroll"><header class="focus-arrival-top"><span>青溪</span><button class="icon-button" data-ui="menu" aria-label="设置">•••</button></header><div class="focus-arrival-heading"><h1>江湖，<br>从你开始。</h1><p>二十八文，还不会武功。选一个来处。</p></div><div class="arrival-origins" aria-label="选择出身">${ORIGINS.map(o => originCard(o, true)).join('')}</div></div><div class="arrival-footer"><button class="button wide" data-ui="begin">走进青溪 ${icon('arrow')}</button></div></main><div id="modal-root"></div><div id="fight-root"></div><div class="sr-only" aria-live="polite" id="announcer"></div>`;
+  if (layout === 'focus') return `<main class="arrival-screen focus-arrival"><div class="arrival-scroll"><div class="focus-arrival-hero"><header class="focus-arrival-top"><span>青溪 · 初来乍到</span><button class="icon-button" data-ui="menu" aria-label="设置">•••</button></header><div class="focus-arrival-heading"><h1>无名之辈，<br>也能搅动江湖。</h1><p>一身布衣，二十八文。<br>你的第一步，从哪里来？</p></div></div><div class="focus-origin-heading"><h2>选一个来处</h2><span>都还不会武功</span></div><div class="arrival-origins" aria-label="选择出身">${ORIGINS.map(o => originCard(o, true)).join('')}</div><p class="focus-origin-summary">${esc(ORIGINS.find(o => o.id === chosenOrigin)!.description)}</p></div><div class="arrival-footer"><button class="button wide" data-ui="begin">以${esc(ORIGINS.find(o => o.id === chosenOrigin)!.name)}起步 ${icon('arrow')}</button></div></main><div id="modal-root"></div><div id="fight-root"></div><div class="sr-only" aria-live="polite" id="announcer"></div>`;
   return `<main class="arrival-screen"><div class="arrival-scroll"><div class="arrival-scene"><img src="./demo/harbor.webp" alt="微雨初晴的青溪渡口"><button class="button secondary" data-ui="layouts">${icon('map')} 挑一种界面</button></div><div class="arrival-heading"><span class="eyebrow">江湖夜雨 · 青溪试游</span><h1>还不会武功的你，<br>先从哪里来？</h1><p>身上二十八文，一包行李。<br>先谋一口饭，或去认识一个教你握剑的人。</p><span class="pill green">四种出身 · 都从未入门开始</span></div><div class="arrival-origins" aria-label="选择出身">${ORIGINS.map(o => originCard(o, true)).join('')}</div></div><div class="arrival-footer"><button class="button wide" data-ui="begin">以${esc(ORIGINS.find(o => o.id === chosenOrigin)!.name)}起步 ${icon('arrow')}</button><p>出身决定起点，往后的路由你自己走。</p></div></main><div id="modal-root"></div><div id="fight-root"></div><div class="sr-only" aria-live="polite" id="announcer"></div>`;
 }
 
@@ -238,7 +240,7 @@ function focusStatus(): string {
 }
 
 function focusPersonView(): string {
-  return `<section class="panel focus-identity"><span class="eyebrow">${esc(origin().name)}</span><h2>${esc(state.name)}</h2>${focusStatus()}</section><div class="focus-person-links"><button class="panel" data-ui="tab:sword">${icon('sword')}武学 ${icon('arrow')}</button><button class="panel" data-ui="tab:bag">${icon('bag')}行囊 ${icon('arrow')}</button><button class="panel" data-ui="journal">${icon('book')}记事 ${icon('arrow')}</button><button class="panel" data-ui="menu">${icon('sun')}设置 ${icon('arrow')}</button></div><details class="panel focus-attributes"><summary>根基 ${icon('arrow')}</summary><div class="facts-grid">${ATTRS.map(a => `<div><span>${a.name} · ${a.hint}</span><b>${state.attrs[a.id]}</b></div>`).join('')}</div></details><details class="panel focus-relations"><summary>相识的人 ${icon('arrow')}</summary>${NPCS.filter(n => state.relations[n.id]).map(n => `<div class="relation-row"><b>${esc(n.name)}</b>${pill(relationText(state.relations[n.id]))}</div>`).join('') || '<p class="empty-note">尚无深交。</p>'}</details>${resultCard()}`;
+  return `<section class="panel focus-identity"><div class="focus-identity-head"><span class="cinema-player-mark" aria-hidden="true">${icon('person')}</span><div><span class="eyebrow">${esc(origin().name)}</span><h2>${esc(state.name)}</h2></div></div>${focusStatus()}</section><div class="focus-person-links"><button class="panel" data-ui="tab:sword">${icon('sword')}武学 ${icon('arrow')}</button><button class="panel" data-ui="tab:bag">${icon('bag')}行囊 ${icon('arrow')}</button><button class="panel" data-ui="journal">${icon('book')}记事 ${icon('arrow')}</button><button class="panel" data-ui="menu">${icon('sun')}设置 ${icon('arrow')}</button></div><details class="panel focus-attributes"><summary>根基 ${icon('arrow')}</summary><div class="facts-grid">${ATTRS.map(a => `<div><span>${a.name} · ${a.hint}</span><b>${state.attrs[a.id]}</b></div>`).join('')}</div></details><details class="panel focus-relations"><summary>相识的人 ${icon('arrow')}</summary>${NPCS.filter(n => state.relations[n.id]).map(n => `<div class="relation-row"><b>${esc(n.name)}</b>${pill(relationText(state.relations[n.id]))}</div>`).join('') || '<p class="empty-note">尚无深交。</p>'}</details>${resultCard()}`;
 }
 
 function focusSkillsView(): string {
@@ -326,7 +328,7 @@ function renderModal(): void {
   } else if (modal === 'person-actions') {
     const person = npcsAt(state).find(n => n.id === selected);
     title = person?.name ?? '人已离开';
-    content = `${resultCard()}${person ? `<div class="focus-person-intro"><small>${esc(person.role)} · ${relationText(state.relations[person.id] || 0)}</small><p>${esc(person.description)}</p></div>${focusActionList(actionsFor(state, person.id))}` : '<p>这会儿人已经不在这里。</p>'}`;
+    content = `${resultCard()}${person ? `<div class="focus-person-intro">${portrait(person.id)}<div class="focus-person-copy"><small>${esc(person.role)} · ${relationText(state.relations[person.id] || 0)}</small><p>${esc(person.description)}</p></div></div>${focusActionList(actionsFor(state, person.id))}` : '<p>这会儿人已经不在这里。</p>'}`;
   } else if (modal === 'focus-actions') {
     title = state.stopped ? '应对查问' : '做点什么';
     const suggestion = smartSuggestions(state)[0];

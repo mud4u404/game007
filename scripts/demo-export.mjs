@@ -44,18 +44,26 @@ if (chunks[0].imports.length || chunks[0].dynamicImports.length) {
   throw new Error('The demo still imports another script; refusing to export an incomplete file.');
 }
 
-const harbor = await readFile(resolve(root, 'public/demo/harbor.webp'));
-const image = `data:image/webp;base64,${harbor.toString('base64')}`;
 let code = chunks[0].code;
 if (!code.includes('./demo/harbor.webp') || !code.includes('href="./index.html"')) {
   throw new Error('The demo resource paths changed; update the single-file replacements before exporting.');
 }
-code = code.replaceAll('./demo/harbor.webp', image).replaceAll('href="./index.html"', 'href="#"');
+code = code.replaceAll('href="./index.html"', 'href="#"');
 // A literal closing script tag inside a JS string must not end this HTML element.
 code = code.replace(/<\/script/gi, '<\\/script');
-const css = styles.map(asset => typeof asset.source === 'string'
+let css = styles.map(asset => typeof asset.source === 'string'
   ? asset.source : Buffer.from(asset.source).toString('utf8')).join('\n')
   + '\na.rail-link{display:none!important}';
+// Vite leaves public-directory URLs in the single-file build. Embed each atlas
+// in CSS and JS so the optional export has the same artwork as the hosted demo.
+for (const filename of ['harbor.webp', 'scenes.webp', 'portraits.webp']) {
+  const asset = await readFile(resolve(root, 'public/demo', filename));
+  const image = `data:image/webp;base64,${asset.toString('base64')}`;
+  for (const prefix of ['../demo/', './demo/', '/demo/']) {
+    code = code.replaceAll(`${prefix}${filename}`, image);
+    css = css.replaceAll(`${prefix}${filename}`, image);
+  }
+}
 if (/url\(\s*['"]?(?!data:|#)[^\s'"\)]/i.test(css) || /@import\b/i.test(css)) {
   throw new Error('The demo stylesheet still loads an external resource.');
 }

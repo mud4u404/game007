@@ -75,6 +75,47 @@ try {
     });
     assert.equal(issue, null, `${label} 不能直接点到`);
   };
+  // 场景图和肖像不能只在 DOM 里占位：检查屏内实际使用的资源能被浏览器解码。
+  const artLoaded = async (label, portraits = true) => {
+    const art = await p.evaluate(async () => {
+      const urls = new Set();
+      for (const el of document.querySelectorAll('body *')) {
+        const r = el.getBoundingClientRect(), style = getComputedStyle(el);
+        if (!r.width || !r.height || r.bottom <= 0 || r.top >= innerHeight || r.right <= 0 || r.left >= innerWidth || style.visibility === 'hidden' || style.opacity === '0') continue;
+        if (el instanceof HTMLImageElement && el.currentSrc) urls.add(el.currentSrc);
+        for (const pseudo of [null, '::before', '::after']) {
+          const background = getComputedStyle(el, pseudo).backgroundImage;
+          for (const match of background.matchAll(/url\(["']?([^"')]+)["']?\)/g)) urls.add(match[1]);
+        }
+      }
+      return Promise.all([...urls].filter(src => /\/(scenes|portraits)\.webp(?:[?#]|$)/.test(src)).map(async src => {
+        const image = new Image();
+        image.src = src;
+        try {
+          await image.decode();
+          return { src, decoded: image.naturalWidth > 0 && image.naturalHeight > 0 };
+        } catch { return { src, decoded: false }; }
+      }));
+    });
+    assert.ok(art.some(item => /\/scenes\.webp(?:[?#]|$)/.test(item.src)), `${label} 首屏没有场景美术`);
+    if (portraits) assert.ok(art.some(item => /\/portraits\.webp(?:[?#]|$)/.test(item.src)), `${label} 人物肖像没有显示`);
+    assert.deepEqual(art.filter(item => !item.decoded), [], `${label} 美术资源加载失败`);
+  };
+  // 中心可点还不够：关键操作应完整留在屏内，内侧四角也不能被画面或浮层覆盖。
+  const unobstructed = async (locator, label) => {
+    const issue = await locator.evaluate(el => {
+      const r = el.getBoundingClientRect();
+      if (r.top < -1 || r.left < -1 || r.bottom > innerHeight + 1 || r.right > innerWidth + 1) return '点击区未完整显示';
+      const inset = 12;
+      const points = [[r.left + r.width / 2, r.top + r.height / 2], [r.left + inset, r.top + inset], [r.right - inset, r.top + inset], [r.left + inset, r.bottom - inset], [r.right - inset, r.bottom - inset]];
+      for (const [x, y] of points) {
+        const top = document.elementFromPoint(x, y);
+        if (!top || (top !== el && !el.contains(top))) return `${Math.round(x)},${Math.round(y)} 被 ${top?.tagName}.${top?.className} 遮住`;
+      }
+      return null;
+    });
+    assert.equal(issue, null, `${label} 被遮挡或裁切`);
+  };
   const focusInside = async () => assert.ok(await dialog().evaluate(el => el.contains(document.activeElement)), '键盘焦点离开了抽屉');
   const checkFocusTrap = async () => {
     await focusInside();
@@ -116,6 +157,7 @@ try {
     await p.setViewportSize(viewport);
     await shape(`${viewport.width}×${viewport.height} 出身页`);
     await reachable(ui('begin'), '开始按钮');
+    await snap(`focus-arrival-${viewport.width}x${viewport.height}`);
   }
   await p.setViewportSize(VIEWPORTS[2]);
   await snap('focus-arrival');
@@ -157,13 +199,18 @@ try {
     const label = `${viewport.width}×${viewport.height}`;
     await noWorldActionList();
     await shape(`${label} 世界页`);
+    await artLoaded(`${label} 世界页`);
     for (const key of ['menu', 'status', 'focus-actions', 'select:guard', 'tab:world', 'tab:map', 'tab:person']) {
       await reachable(ui(key), `${label} ${key}`);
+      await unobstructed(ui(key), `${label} ${key}`);
     }
+    await snap(`focus-world-${viewport.width}x${viewport.height}`);
     await tap('select:guard');
     assert.equal(await p.locator('.modal.focus-sheet[role="dialog"]').count(), 1, '选人物应打开行动抽屉');
     await shape(`${label} 人物行动`);
     await reachable(ui('action:talk:guard'), `${label} 交谈`);
+    await unobstructed(ui('action:talk:guard'), `${label} 交谈`);
+    if (viewport.width === 390) await snap('focus-person-sheet');
     const guardActions = ['talk:guard', 'rescue-evidence', 'rescue-money', 'rescue-sneak', 'rescue-fight'];
     for (const action of guardActions) assert.equal(await dialog().locator(`[data-ui="action:${action}"]`).count(), 1, `人物交互遗漏 ${action}`);
     await showUnavailable();
@@ -180,6 +227,7 @@ try {
 
     await tap('focus-actions');
     await shape(`${label} 当地行动`);
+    if (viewport.width === 390) await snap('focus-local-sheet');
     for (const action of ['work-cargo', 'free-rest', 'wait', 'use-medicine']) assert.equal(await dialog().locator(`[data-ui="action:${action}"]`).count(), 1, `当地行动遗漏 ${action}`);
     await close();
     await tap('status');
@@ -210,11 +258,42 @@ try {
   await seed();
   const worldText = await p.locator('body').innerText();
   assert.doesNotMatch(worldText, /一身本事，一段江湖|一蓑烟雨任平生|比较三种操作方式|从场景找人|概念试玩|进度保存在本机|原版存档独立保留|自由世界.*演示/, '首屏不应出现品牌标语、方案说明或常驻存档说明');
-  log(`五种屏幕：三主入口、44px 点击区、无横向溢出、抽屉焦点循环；世界页可见文字 ${worldText.replace(/\s/g, '').length} 字符`);
+  log('五种屏幕：三主入口、44px 点击区、无横向溢出、抽屉焦点循环；场景和人物图已解码，关键操作无遮挡');
   await snap('focus-world');
   await tap('tab:person'); await snap('focus-person');
   await tap('tab:map'); await snap('focus-map');
   await tap('tab:world');
+
+  // 不同地点、夜间无人和多人同屏都应保留场景与可点的行动出口。
+  for (const place of ['dock', 'street', 'tea', 'yard', 'inn', 'yamen']) {
+    await seed({ place });
+    await artLoaded(`${place} 白日场景`);
+    await shape(`${place} 白日场景`);
+    await snap(`focus-scene-${place}`);
+  }
+  for (const viewport of VIEWPORTS) {
+    await p.setViewportSize(viewport);
+    await seed({ stopped: true, heat: 40 });
+    await shape(`${viewport.width} 四人同屏`);
+    await artLoaded(`${viewport.width} 四人同屏`);
+    for (const key of ['select:docker', 'select:guard', 'select:xu', 'select:constable', 'focus-actions', 'status']) {
+      await unobstructed(ui(key), `${viewport.width} 四人同屏 ${key}`);
+    }
+    if (viewport.width === 390) await snap('focus-four-people');
+    await seed({ place: 'yard', minute: 1380 });
+    await shape(`${viewport.width} 夜间无人`);
+    await artLoaded(`${viewport.width} 夜间无人`, false);
+    await unobstructed(ui('focus-actions'), `${viewport.width} 夜间行动`);
+    await unobstructed(ui('tab:map'), `${viewport.width} 夜间离开`);
+    if (viewport.width === 390) await snap('focus-night-empty');
+  }
+  await p.setViewportSize(VIEWPORTS[2]);
+  await seed({ place: 'inn', minute: 1380, caseStatus: 'released' });
+  await artLoaded('夜间客栈');
+  for (const person of ['xu', 'innkeeper']) await unobstructed(ui(`select:${person}`), `夜间 ${person}`);
+  await snap('focus-night-inn');
+  await seed();
+  log('六处场景、夜间无人、夜间客栈与四人同屏均可操作，美术资源正常显示');
 
   await tap('select:guard');
   const beforeTalk = await state();
