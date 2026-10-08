@@ -48,6 +48,8 @@ html[data-layout=focus] .focus-scene { position: relative; isolation: isolate; c
 html[data-layout=focus] .focus-scene-art { position: absolute; top: 50%; left: 50%; width: max(100cqw, 150cqh); height: max(100cqh, 66.6667cqw); transform: translate(-50%, -50%); z-index: -2; background-image: url('/demo/scenes.webp'); background-size: 200% 300%; background-position: var(--scene-x) var(--scene-y); background-repeat: no-repeat; }
 html[data-layout=focus] .focus-scene:after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(180deg, #0a151adb 0%, #0d1c2030 23%, transparent 37%, #0b151958 62%, #0d181cdb 100%); }
 html[data-layout=focus] .focus-scene.is-night .focus-scene-art { filter: brightness(.58) saturate(.7); }
+/* At night, look toward the empty pavilion after the swordsman has left. */
+html[data-layout=focus] .focus-place-yard.is-night .focus-scene-art { left: 100%; width: max(220cqw, 330cqh); height: max(220cqh, 146.6667cqw); transform: translate(-100%, -50%); }
 html[data-layout=focus] .focus-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: calc(14px + env(safe-area-inset-top)) 20px 12px; min-height: 74px; }
 html[data-layout=focus] .focus-top > b { display: flex; align-items: center; gap: 11px; font-size: 18px; font-weight: 750; }
 html[data-layout=focus] .focus-top > b > span { font-size: 11px; font-weight: 400; color: #c3ccc8; border-left: 1px solid #ffffff3b; padding-left: 11px; }
@@ -68,7 +70,7 @@ html[data-layout=focus] .focus-people-heading { margin-bottom: 10px; display: fl
 html[data-layout=focus] .focus-people-heading h2 { font: 550 12px/1.4 var(--sans); color: var(--muted); }
 html[data-layout=focus] .focus-people-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
 html[data-layout=focus] .focus-people[data-count='4'] .focus-people-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
-html[data-layout=focus] .focus-people[data-count='2'] .focus-people-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+html[data-layout=focus] .focus-people[data-count='2'] .focus-people-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 html[data-layout=focus] .focus-npc { position: relative; isolation: isolate; min-width: 0; height: 137px; padding: 0; background: #243330; color: #f3f4ec; border-radius: 8px; overflow: hidden; border: 1px solid #2739323b; text-align: left; }
 html[data-layout=focus] .cinema-portrait { display: block; flex: 0 0 auto; background-image: url('/demo/portraits.webp'); background-size: 800% auto; background-position: calc(var(--portrait-index) / 7 * 100%) 20%; background-repeat: no-repeat; background-color: #2c3837; }
 html[data-layout=focus] .focus-npc > .cinema-portrait { position: absolute; inset: 0; z-index: -2; }

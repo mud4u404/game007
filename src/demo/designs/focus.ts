@@ -64,7 +64,7 @@ export function renderFocus(ctx: WorldDesignContext): string {
       : lowStamina ? '精力将尽，歇脚后再上路。' : '';
 
   return `<div class="focus-world">
-    <section class="focus-scene${night ? ' is-night' : ''}" data-section="scene" aria-label="${esc(place.name)}">
+    <section class="focus-scene focus-place-${esc(place.id)}${night ? ' is-night' : ''}" data-section="scene" aria-label="${esc(place.name)}">
       <div class="focus-scene-art" style="--scene-x:${sceneX}%;--scene-y:${sceneY}%" role="img" aria-label="${esc(place.name)}的景象"></div>
       <header class="focus-top"><b>青溪<span>第 ${Math.floor(state.minute / 1440) + 1} 日</span></b><time>${clock}${icon(night ? 'moon' : 'sun')}</time><button data-ui="menu" aria-label="打开菜单"><svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button></header>
       <div class="focus-location">${urgency ? `<span class="focus-scene-urgency${state.stopped ? ' is-danger' : ''}"><i></i>${esc(urgency)}</span>` : ''}<h1>${esc(place.name)}</h1><p>${esc(sceneLine(state))}</p></div>
