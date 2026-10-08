@@ -42,6 +42,7 @@ jobs:
         run: |
           node scripts/room-smoke.mjs
           node scripts/room-combat-smoke.mjs
+          SMOKE_COMBAT_LAYOUT=cards node scripts/room-combat-smoke.mjs
       - name: 验证三种手机操作与玩法
         env:
           SMOKE_CHANNEL: chrome

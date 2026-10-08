@@ -12,7 +12,7 @@
 
 ## 试玩
 
-- **同屏行动 Demo**：[进入江湖](https://mud4u404.github.io/game007/demo.html?layout=room) · [直接试招](https://mud4u404.github.io/game007/demo.html?layout=room&trial=combat)。人物、物件、去路和连续操作同屏；战斗用字号与局部颜色区分来招、时限、低气血。四种出身仍从零武学开始，独立试招不改变正式进度。见 [试玩说明](docs/demo.md)。
+- **场景探索 Demo**：[进入江湖](https://mud4u404.github.io/game007/demo.html?layout=cards) · [直接试招](https://mud4u404.github.io/game007/demo.html?layout=cards&trial=combat)。当前主试玩沿用「场景探索」：点场景中的人物、路牌，再展开当地行动；战斗用字号与局部颜色区分来招、时限、低气血。四种出身仍从零武学开始，独立试招不改变正式进度。见 [试玩说明](docs/demo.md)。
 - **其他布局**：[界面对比](https://mud4u404.github.io/game007/demo.html?layout=choose)。同屏行动与原三种布局共用演示进度；旧 `layout=focus` 链接会迁移到可用方案。
 - **云端发布**：GitHub Pages 已启用；开发分支推送通过检查后自动发布，无需下载文件。见 [云端试玩说明](docs/deployment.md)。
 - **早期单文件原型**：https://claude.ai/artifact/X6NYxuUWqFRvfd94GSHUDt ，源文件在 [prototype/](prototype/)。

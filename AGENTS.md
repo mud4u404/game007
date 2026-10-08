@@ -10,6 +10,8 @@
 
 用户要求后续试玩均通过云端 HTTPS 网址直接打开，不把下载 HTML 或 localhost 地址作为主要交付。当前 Demo 发布源为 `codex/jianghu-sandbox-demo`，推送后由 `.github/workflows/pages.yml` 在检查和手机试玩通过后发布 GitHub Pages。交付前检查部署成功，并实际访问 `https://mud4u404.github.io/game007/demo.html?layout=choose`，核对 `version.json` 与本轮提交一致。不要把未开通或发布失败的网址说成可用；首次开通与排障见 [云端试玩](docs/deployment.md)。
 
+当前主试玩采用用户再次指明的原「场景探索」（`layout=cards`）：人物和去路在场景中，就地展开行动。后续以此为界面基准继续改进；已认可的战斗紧急度提示共用，`layout=room` 保留对比。主试玩直达网址使用 `demo.html?layout=cards`，避免已存的试验布局偏好覆盖交付入口。
+
 本文件写给参与本项目的 AI 协作者，例如 Trae、Codex、Cursor、Gemini。不管用哪个工具，规则都一样。**动手之前，先完整读完本文件，再读任务里指定的文档。**
 
 ## 一、项目简介

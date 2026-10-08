@@ -49,6 +49,7 @@ const requestedPractice = new URLSearchParams(location.search).get('trial') === 
 let storedLayout: string | null = null;
 try { storedLayout = localStorage.getItem(LAYOUT_KEY); } catch { /* preferences are optional */ }
 let layout: Layout = isPlayableLayout(requestedLayout) ? requestedLayout : isPlayableLayout(storedLayout) ? storedLayout : 'cards';
+const usesPriorityCombat = () => layout === 'cards' || layout === 'room';
 const chooseLayoutOnStart = requestedLayout === 'choose' || (!isPlayableLayout(requestedLayout) && !isPlayableLayout(storedLayout));
 document.documentElement.dataset.layout = layout;
 const root = document.querySelector<HTMLDivElement>('#demo-root')!;
@@ -140,7 +141,7 @@ function originCard(o: typeof ORIGINS[number], arrival = false): string {
 function arrivalView(): string {
   if (layout === 'room') return renderRoomArrival(chosenOrigin);
   if (layout === 'focus') return `<main class="arrival-screen focus-arrival"><div class="arrival-scroll"><div class="focus-arrival-hero"><header class="focus-arrival-top"><span>青溪 · 初来乍到</span><button class="icon-button" data-ui="menu" aria-label="设置">•••</button></header><div class="focus-arrival-heading"><h1>无名之辈，<br>也能搅动江湖。</h1><p>一身布衣，二十八文。<br>你的第一步，从哪里来？</p></div></div><div class="focus-origin-heading"><h2>选一个来处</h2><span>都还不会武功</span></div><div class="arrival-origins" aria-label="选择出身">${ORIGINS.map(o => originCard(o, true)).join('')}</div><p class="focus-origin-summary">${esc(ORIGINS.find(o => o.id === chosenOrigin)!.description)}</p></div><div class="arrival-footer"><button class="button wide" data-ui="begin">以${esc(ORIGINS.find(o => o.id === chosenOrigin)!.name)}起步 ${icon('arrow')}</button></div></main><div id="modal-root"></div><div id="fight-root"></div><div class="sr-only" aria-live="polite" id="announcer"></div>`;
-  return `<main class="arrival-screen"><div class="arrival-scroll"><div class="arrival-scene"><img src="./demo/harbor.webp" alt="微雨初晴的青溪渡口"><button class="button secondary" data-ui="layouts">${icon('map')} 挑一种界面</button></div><div class="arrival-heading"><span class="eyebrow">江湖夜雨 · 青溪试游</span><h1>还不会武功的你，<br>先从哪里来？</h1><p>身上二十八文，一包行李。<br>先谋一口饭，或去认识一个教你握剑的人。</p><span class="pill green">四种出身 · 都从未入门开始</span></div><div class="arrival-origins" aria-label="选择出身">${ORIGINS.map(o => originCard(o, true)).join('')}</div></div><div class="arrival-footer"><button class="button wide" data-ui="begin">以${esc(ORIGINS.find(o => o.id === chosenOrigin)!.name)}起步 ${icon('arrow')}</button><p>出身决定起点，往后的路由你自己走。</p></div></main><div id="modal-root"></div><div id="fight-root"></div><div class="sr-only" aria-live="polite" id="announcer"></div>`;
+  return `<main class="arrival-screen"><div class="arrival-scroll"><div class="arrival-scene"><img src="./demo/harbor.webp" alt="微雨初晴的青溪渡口"><button class="button secondary" data-ui="layouts">${icon('map')} 挑一种界面</button></div><div class="arrival-heading"><span class="eyebrow">江湖夜雨 · 青溪试游</span><h1>还不会武功的你，<br>先从哪里来？</h1><p>身上二十八文，一包行李。<br>先谋一口饭，或去认识一个教你握剑的人。</p><span class="pill green">四种出身 · 都从未入门开始</span></div><div class="arrival-origins" aria-label="选择出身">${ORIGINS.map(o => originCard(o, true)).join('')}</div></div><div class="arrival-footer"><button class="button wide" data-ui="begin">以${esc(ORIGINS.find(o => o.id === chosenOrigin)!.name)}起步 ${icon('arrow')}</button>${layout === 'cards' ? '<button class="text-button" data-ui="practice">先试一场交手</button>' : '<p>出身决定起点，往后的路由你自己走。</p>'}</div></main><div id="modal-root"></div><div id="fight-root"></div><div class="sr-only" aria-live="polite" id="announcer"></div>`;
 }
 
 function layoutPicker(): string {
@@ -361,7 +362,7 @@ function renderModal(): void {
   if (modal === 'menu') {
     title = '设置';
     content = `<div class="focus-menu-grid"><button class="button secondary" data-ui="theme">${icon(document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon')}${document.documentElement.dataset.theme === 'dark' ? '浅色外观' : '深色外观'}</button><button class="button secondary" data-ui="layouts">${icon('map')}界面对比</button>${started ? `<button class="button secondary" data-ui="journal">${icon('book')}记事</button><button class="button secondary" data-ui="origins">${icon('reset')}重新开始</button>` : ''}<button class="button secondary" data-ui="about">${icon('spark')}关于试玩</button></div><p class="fine-print">${started ? storageFailed ? '进度保存失败，请暂勿关闭。' : '进度保存在本机。' : '选定出身后开始。'}</p>`;
-    if (layout === 'room') content += `<button class="button secondary wide" data-ui="practice">${icon('sword')}试招 · 不影响江湖进度</button>`;
+    if (usesPriorityCombat()) content += `<button class="button secondary wide" data-ui="practice">${icon('sword')}试招 · 不影响江湖进度</button>`;
   } else if (modal === 'status') {
     title = '眼下状态'; content = focusStatus();
   } else if (modal === 'person-actions') {
@@ -446,7 +447,7 @@ function practiceUrl(enabled: boolean): void {
 }
 
 function beginPractice(): void {
-  if (layout !== 'room' || (activeFight && !activeFight.practice) || state.pendingBattle) return;
+  if (!usesPriorityCombat() || (activeFight && !activeFight.practice) || state.pendingBattle) return;
   // This character never replaces world state, enters a save slot, or settles
   // a battle into the world's quests, time, resources, or relationships.
   const visitor = createDemo('apprentice', '试招客');
@@ -490,7 +491,7 @@ function renderFight(): void {
   const focusBefore = (document.activeElement as HTMLElement)?.dataset.ui;
   const tell = b.phase === 'tell';
   const result = b.phase === 'result';
-  if (layout === 'room') {
+  if (usesPriorityCombat()) {
     host.innerHTML = renderRoomCombat({ battle: b, request: activeFight.request,
       playerName: b.player.name, stance: b.stance, paused: fightPaused,
       tellSeconds, hasResponded, medicine: activeFight.practice?.medicine ?? state.inventory.medicine ?? 0,
@@ -652,5 +653,5 @@ setInterval(() => {
 
 if (state.pendingBattle) { beginFight(state.pendingBattle); if (requestedPractice) practiceUrl(false); }
 render();
-if (requestedPractice && layout === 'room' && !activeFight) beginPractice();
+if (requestedPractice && usesPriorityCombat() && !activeFight) beginPractice();
 if (chooseLayoutOnStart && !activeFight) openModal('layouts');

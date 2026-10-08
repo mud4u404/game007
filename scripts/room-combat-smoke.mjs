@@ -1,5 +1,6 @@
 /**
- * A 同屏战斗的真实浏览器验收：真实引擎、可控时钟、独立试招与正式存档。
+ * 分级战斗的真实浏览器验收：真实引擎、可控时钟、独立试招与正式存档。
+ * SMOKE_COMBAT_LAYOUT=cards 验证场景探索；默认验证 room。
  * node scripts/room-combat-smoke.mjs [http://127.0.0.1:5174/demo.html] [截图目录]
  * 未传 URL 时测试 dist；边界状态由真实创建并行动后的角色存档复制。
  */
@@ -10,6 +11,9 @@ import { chromium } from 'playwright';
 
 const SAVE = 'game007-sandbox-demo-v1';
 const THEME = 'game007-sandbox-demo-theme';
+const layout = process.env.SMOKE_COMBAT_LAYOUT ?? 'room';
+assert.ok(['cards', 'room'].includes(layout), '分级战斗验收只接受 cards 或 room');
+const selectPrefix = layout === 'cards' ? 'select' : 'room-select';
 const SENTINELS = { 'game007-save-v2': 'combat-original-progress-kept', 'jhyy-save-v2': 'combat-source-progress-kept' };
 const VIEWPORTS = [
   { width: 320, height: 568 }, { width: 360, height: 560 },
@@ -27,7 +31,7 @@ try {
     url = new URL('demo.html', server.resolvedUrls.local[0]).href;
   }
   const target = (trial = false) => {
-    const link = new URL(url); link.searchParams.set('layout', 'room');
+    const link = new URL(url); link.searchParams.set('layout', layout);
     if (trial) link.searchParams.set('trial', 'combat'); else link.searchParams.delete('trial');
     return link.href;
   };
@@ -188,7 +192,7 @@ try {
 
   const { p, context } = await makePage();
   await p.goto(target()); await tap(p, 'choose-origin:porter'); await tap(p, 'begin');
-  await tap(p, 'room-select:docker'); await tap(p, 'action:work-cargo');
+  await tap(p, `${selectPrefix}:docker`); await tap(p, 'action:work-cargo');
   const saved = await raw(p), progressed = await state(p);
   assert.ok(progressed.minute > 540 && progressed.silver > 28, '试招隔离样本需有真实游玩进度');
   await p.goto(target(true)); await protectedTell(p);
@@ -197,8 +201,9 @@ try {
   assert.equal(await raw(p), saved, '试招中刷新不得覆盖正式进度或写入临时交手');
   await tap(p, 'fight:exit-practice');
   assert.equal(await battle(p).count(), 0); assert.equal(await raw(p), saved);
-  assert.equal(await p.locator('.room-world').count(), 1);
+  assert.equal(await p.locator(layout === 'cards' ? '.explore-world' : '.room-world').count(), 1);
   assert.equal(await p.locator('.demo-layout[inert]').count(), 0);
+  await ui(p, 'travel:street').scrollIntoViewIfNeeded();
   await reach(p, ui(p, 'travel:street'), '退出试招继续行路');
   // An explicit practice entry is also reachable through the normal world menu/page.
   if (!(await ui(p, 'practice').count())) await tap(p, 'menu');
@@ -239,18 +244,22 @@ try {
   // even though the opponent is somebody else and remains in the same room.
   const learned = { ...structuredClone(progressed), hp: 170, sword: 1, footwork: 1, power: 1, mp: 90 };
   await p.evaluate(({ SAVE, learned }) => localStorage.setItem(SAVE, JSON.stringify(learned)), { SAVE, learned });
-  await p.goto(target()); await tap(p, 'room-select:xu'); await tap(p, 'action:rescue-fight');
+  await p.goto(target()); await tap(p, `${selectPrefix}:xu`); await tap(p, 'action:rescue-fight');
   await tap(p, 'fight:flee'); await tap(p, 'fight:finish');
-  assert.equal(await ui(p, 'room-select:xu').getAttribute('aria-pressed'), 'true');
-  assert.match(await p.locator('.room-actions .room-latest[data-room-feedback-target="xu"]').innerText(), /卫衡.*交手之后/);
+  assert.equal(await ui(p, `${selectPrefix}:xu`).getAttribute('aria-pressed'), 'true');
+  if (layout === 'room') assert.match(await p.locator('.room-actions .room-latest[data-room-feedback-target="xu"]').innerText(), /卫衡.*交手之后/);
+  else assert.equal(await p.locator('.explore-scene-response .reply-card').count(), 1, '交手结算应回到场景中');
   assert.equal((await state(p)).caseStatus, 'held', '败退不会凭空救出许青');
 
   const stopped = { ...structuredClone(learned), place: 'street', stopped: true, heat: 40 };
   await p.evaluate(({ SAVE, stopped }) => localStorage.setItem(SAVE, JSON.stringify(stopped)), { SAVE, stopped });
   await p.goto(target()); await tap(p, 'action:arrest-fight');
+  assert.match(await p.locator('.room-battle-foe h2').innerText(), /秦捕头/);
   await tap(p, 'fight:flee'); await tap(p, 'fight:finish');
-  assert.match(await p.locator('.room-latest-label').innerText(), /秦捕头/);
-  assert.doesNotMatch(await p.locator('.room-latest-label').innerText(), /卫衡/);
+  if (layout === 'room') {
+    assert.match(await p.locator('.room-latest-label').innerText(), /秦捕头/);
+    assert.doesNotMatch(await p.locator('.room-latest-label').innerText(), /卫衡/);
+  } else assert.equal(await p.locator('.explore-scene-response .reply-card').count(), 1);
   await isolation(p); await context.close();
   assert.deepEqual(errors, [], '浏览器不应出现脚本错误');
   log('续战优先、低气血独立警告、正式用药/脱身/返回江湖与存档隔离通过');

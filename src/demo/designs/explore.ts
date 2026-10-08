@@ -46,6 +46,6 @@ export function renderExplore(ctx: WorldDesignContext): string {
     </section>
     <div class="explore-rumor">${ctx.notice}</div>
     ${publicActions.length ? `<details class="explore-other-actions" data-section="public-actions" ${state.stopped || (publicResult && ctx.result) ? 'open' : ''}><summary><span><b>在这里，还可以</b><small>${state.stopped ? '应付查问、用药、交涉' : `${actionsLead ? esc(actionsLead.label) + '、' : ''}歇脚、候时`}</small></span><span class="explore-action-count">${publicActions.length} 项${icon('arrow')}</span></summary>${publicResult ? ctx.result : ''}<div class="action-grid">${publicActions.map(ctx.actionCard).join('')}</div></details>` : ''}
-    <footer class="explore-end"><span>路向四方，去留随心。</span><button data-ui="tab:map">展开全镇 ${icon('arrow')}</button></footer>
+    <footer class="explore-end"><button data-ui="practice">试招 · 不影响进度</button><button data-ui="tab:map">展开全镇 ${icon('arrow')}</button></footer>
   </div>`;
 }

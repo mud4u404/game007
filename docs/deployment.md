@@ -4,7 +4,7 @@
 
 https://mud4u404.github.io/game007/demo.html?layout=choose
 
-当前同屏行动试玩：`https://mud4u404.github.io/game007/demo.html?layout=room`。直接试招：在后面加 `&trial=combat`，使用临时角色，不消耗江湖角色的资源；已有未结束的正式战斗优先恢复。
+当前主试玩为「场景探索」：`https://mud4u404.github.io/game007/demo.html?layout=cards`。直接试招：在后面加 `&trial=combat`，使用临时角色，不消耗江湖角色的资源；已有未结束的正式战斗优先恢复。`layout=room` 保留供对比。
 
 首次开通前该地址不可用；以 GitHub Actions 的「发布云端试玩」成功部署以及实际访问结果为准。
 

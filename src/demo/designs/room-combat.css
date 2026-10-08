@@ -45,6 +45,16 @@
   --combat-red: #ff969b;
   --combat-red-soft: #3c242a;
 }
+/* The scene layout carries its palette into combat; urgency keeps its own colors. */
+html[data-layout=cards] .battle.room-battle {
+  --combat-ink: var(--ink);
+  --combat-muted: var(--muted);
+  --combat-panel: var(--panel);
+  --combat-soft: var(--soft);
+  --combat-line: var(--line);
+  --combat-blue: var(--green);
+  --combat-blue-soft: var(--green-soft);
+}
 .room-battle :is(h1,h2,b,strong) { font-family: inherit; letter-spacing: 0; }
 .room-battle :is(button,h1,h2,p) { margin: 0; }
 .room-battle button { min-height: 44px; min-width: 44px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
