@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#151719">
+  <title>同屏行动 · 战斗信息层级</title>
+  <meta name="description" content="同屏行动的战斗效果图：平稳交锋、敌招将至、残血危急。用字号、颜色和明确提示区分处理优先级。">
+  <style>
+    :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: #151719; color: #f0f1ed; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    a { color: inherit; text-underline-offset: 4px; }
+    button { font: inherit; cursor: pointer; }
+    a:focus-visible, button:focus-visible { outline: 3px solid #b5dace; outline-offset: 4px; }
+    main { max-width: 1260px; margin: auto; padding: 28px 30px 40px; }
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; font-size: 12px; color: #aab1b1; }
+    .top a { display: inline-flex; align-items: center; min-height: 44px; }
+    header { margin: 24px 0; }
+    .eyebrow { font-size: 12px; color: #b8c7c5; letter-spacing: .08em; margin: 0 0 10px; }
+    h1 { margin: 0 0 12px; font-size: clamp(27px, 4vw, 38px); line-height: 1.3; letter-spacing: -.035em; font-weight: 600; }
+    header p:last-child { margin: 0; color: #b4bbbb; font-size: 15px; line-height: 1.7; }
+    .state-switch { display: none; }
+    .comparison { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+    figure { margin: 0; min-width: 0; }
+    figcaption { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 0 12px; }
+    figcaption b { font-size: 16px; font-weight: 600; }
+    figcaption span { color: #a0aaaa; font-size: 12px; }
+    .crop { position: relative; display: block; width: 100%; overflow: hidden; border-radius: 12px; background: #e9eceb; aspect-ratio: var(--w) / var(--h); box-shadow: 0 12px 35px #0003; }
+    .crop img { display: block; position: absolute; max-width: none; width: calc(var(--board) / var(--w) * 100%); height: auto; left: calc(var(--x) / var(--w) * -100%); top: calc(var(--y) / var(--h) * -100%); }
+    .caption { margin: 12px 0 0; color: #bbc1c1; font-size: 13px; line-height: 1.7; }
+    .reading-order { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; margin: 28px 0 16px; padding: 18px 0; border-top: 1px solid #383e40; border-bottom: 1px solid #383e40; font-size: 13px; color: #aeb7b7; line-height: 1.8; }
+    .reading-order strong { color: #e9eee9; font-weight: 500; }
+    .reading-order i { display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; }
+    .reading-order .blue { background: #78b7ef; }
+    .reading-order .amber { background: #e8b25b; }
+    .reading-order .red { background: #ed8d84; }
+    footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px; font-size: 12px; color: #9da7a7; line-height: 1.8; }
+    footer p { margin: 0; }
+    footer a { display: inline-block; padding: 10px 0; }
+    .fallback { display: none; }
+    @media (max-width: 760px) {
+      main { max-width: 480px; padding: 18px 18px calc(24px + env(safe-area-inset-bottom)); }
+      header { margin: 20px 0; }
+      header p:last-child { font-size: 14px; }
+      .state-switch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 18px; }
+      .state-switch button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 60px; border: 1px solid #42494b; border-radius: 10px; padding: 8px 4px; color: #b9c2c2; background: #202527; }
+      .state-switch b { font-size: 14px; font-weight: 500; white-space: nowrap; }
+      .state-switch span { font-size: 11px; }
+      .state-switch button[aria-pressed="true"] { background: #edefe9; border-color: #edefe9; color: #1d2325; }
+      .comparison { display: block; }
+      figure { display: none; }
+      .comparison[data-active="calm"] figure[data-state="calm"], .comparison[data-active="warning"] figure[data-state="warning"], .comparison[data-active="critical"] figure[data-state="critical"] { display: block; }
+      figcaption { padding-bottom: 10px; }
+      figcaption b { font-size: 14px; }
+      .reading-order { margin-top: 22px; gap: 8px 14px; font-size: 12px; }
+      .reading-order strong { flex-basis: 100%; }
+      footer { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <nav class="top" aria-label="设计预览导航"><a href="./#a">← 三组方案</a><span>界面效果图 · 设计预览</span></nav>
+    <header>
+      <p class="eyebrow">A · 同屏行动</p>
+      <h1>先看来招，再做应对。</h1>
+      <p>同一套布局，随战况改变字号与强调。操作位置保持稳定。</p>
+    </header>
+    <div class="state-switch" role="group" aria-label="选择战况效果图">
+      <button data-select="calm" aria-pressed="false"><b>平稳交锋</b><span>从容判断</span></button>
+      <button data-select="warning" aria-pressed="true"><b>敌招将至</b><span>准备应对</span></button>
+      <button data-select="critical" aria-pressed="false"><b>残血危急</b><span>立即判断</span></button>
+    </div>
+    <section class="comparison" data-active="warning" aria-label="三种战况的战斗界面">
+      <figure data-state="calm">
+        <figcaption><b>01 · 平稳交锋</b><span>中性底色</span></figcaption>
+        <a class="crop" href="./combat-priority.webp" target="_blank" rel="noopener" aria-label="放大平稳交锋效果图"><img src="./combat-priority.webp" alt="平稳交锋：状态清楚，自动对拆提示和可用招式呈现克制的蓝灰色" fetchpriority="high"></a>
+        <p class="caption">状态和近期交锋清楚可读，留出判断出招时机的余地。</p>
+      </figure>
+      <figure data-state="warning">
+        <figcaption><b>02 · 敌招将至</b><span>琥珀预警</span></figcaption>
+        <a class="crop" href="./combat-priority.webp" target="_blank" rel="noopener" aria-label="放大敌招将至效果图"><img src="./combat-priority.webp" alt="敌招将至：琥珀预警突出劈浪断舟与倒计时，四种应对紧接提示下方"></a>
+        <p class="caption">招名和倒计时优先映入眼中，四种应对就在下方。</p>
+      </figure>
+      <figure data-state="critical">
+        <figcaption><b>03 · 残血危急</b><span>局部红色警示</span></figcaption>
+        <a class="crop" href="./combat-priority.webp" target="_blank" rel="noopener" aria-label="放大残血危急效果图"><img src="./combat-priority.webp" alt="残血危急：来招剩余时间最醒目，低气血单独标红，操作按钮保留原位"></a>
+        <p class="caption">迫近的来招最醒目。低气血另作标记，伤药和脱身始终找得到。</p>
+      </figure>
+    </section>
+    <div class="reading-order"><strong>先看当前威胁，再看自身状态；记录保持次要。</strong><span><i class="blue"></i>蓝 · 操作</span><span><i class="amber"></i>琥珀 · 预警</span><span><i class="red"></i>红 · 危险</span></div>
+    <footer><div><p>每场第一次见招保留阅读时间：先看清，再出手。</p><p>静态效果图，文字与数值为示意；本页按钮用于切换预览。</p></div><a href="./combat-priority.webp" target="_blank" rel="noopener">打开三态对比大图 ↗</a></footer>
+    <noscript><style>.comparison { display: grid; }.comparison figure { display: none !important; }.fallback { display: block; width: 100%; }.state-switch { display: none; }</style><img class="fallback" src="./combat-priority.webp" alt="同屏行动战斗信息层级：平稳交锋、敌招将至、残血危急三张完整效果图"></noscript>
+  </main>
+  <script>
+    const board = { width: 1419, height: 1108, crops: [[58,104,416,960],[501,104,417,960],[945,104,417,960]] };
+    document.querySelectorAll('.crop').forEach((crop,index) => {
+      const [x,y,w,h] = board.crops[index];
+      Object.entries({board:board.width,x,y,w,h}).forEach(([key,value]) => crop.style.setProperty(`--${key}`,value));
+      const img = crop.querySelector('img');
+      img.width = board.width;
+      img.height = board.height;
+    });
+    const states = ['calm','warning','critical'];
+    function selectState() {
+      const key = states.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'warning';
+      document.querySelector('.comparison').dataset.active = key;
+      document.querySelectorAll('[data-select]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.select === key)));
+    }
+    document.querySelectorAll('[data-select]').forEach(button => button.addEventListener('click', () => { location.hash = button.dataset.select; }));
+    addEventListener('hashchange',selectState);
+    selectState();
+  </script>
+</body>
+</html>

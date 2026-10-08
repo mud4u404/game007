@@ -20,6 +20,7 @@
     header { margin: 42px 0 26px; }
     h1 { font-size: clamp(27px, 5vw, 40px); letter-spacing: -.045em; font-weight: 600; line-height: 1.3; margin: 0 0 12px; }
     header p { color: #b5b8b8; margin: 0; font-size: 15px; line-height: 1.7; }
+    .refinement { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 48px; margin: 18px 0 0; padding: 12px 14px; border: 1px solid #52605c; border-radius: 10px; font-size: 14px; background: #25312d; color: #dbe9e1; text-decoration: none; line-height: 1.5; }
     .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .choice { display: flex; align-items: center; gap: 11px; min-height: 66px; border: 1px solid #3b3e40; background: #202325; color: #b9bdbd; padding: 12px 18px; text-align: left; border-radius: 12px; }
     .choice b { font-size: 20px; font-weight: 500; }
@@ -70,6 +71,7 @@
     <header>
       <h1>三种布局，同一个江湖。</h1>
       <p>先看操作方式。每组都有江湖与战斗两张竖屏效果图。</p>
+      <a class="refinement" href="./combat.html"><span>同屏行动 · 战斗信息层级</span><span aria-hidden="true">→</span></a>
     </header>
     <div class="choices" role="group" aria-label="选择设计方案">
       <button class="choice" data-concept="a" aria-pressed="true"><b>A</b><span>同屏行动</span></button>
@@ -107,8 +109,8 @@
     };
     const screens = document.querySelector('.screens');
     function selectConcept(key) {
-      const concept = concepts[key] || concepts.a;
       const safeKey = Object.hasOwn(concepts, key) ? key : 'a';
+      const concept = concepts[safeKey];
       const src = `./${safeKey}.webp`;
       document.querySelectorAll('[data-concept]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.concept === safeKey)));
       document.getElementById('concept-title').textContent = concept.title;
