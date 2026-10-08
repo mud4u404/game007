@@ -4,6 +4,8 @@
 
 https://mud4u404.github.io/game007/demo.html?layout=choose
 
+当前同屏行动试玩：`https://mud4u404.github.io/game007/demo.html?layout=room`。直接试招：在后面加 `&trial=combat`，使用临时角色，不消耗江湖角色的资源；已有未结束的正式战斗优先恢复。
+
 首次开通前该地址不可用；以 GitHub Actions 的「发布云端试玩」成功部署以及实际访问结果为准。
 
 ## 首次开通
@@ -23,7 +25,7 @@ gh workflow run pages.yml --repo mud4u404/game007 --ref codex/jianghu-sandbox-de
 ## 后续发布
 
 - 继续在 `codex/jianghu-sandbox-demo` 开发并提交、推送。
-- `.github/workflows/pages.yml` 对推送运行安装、类型检查、245 项现有测试（随代码演进会变化）、构建和手机浏览器验收；全部成功后发布 `dist`。
+- `.github/workflows/pages.yml` 对推送运行安装、类型检查、全部测试、构建和手机浏览器验收；包含四种入口、同屏世界、分级战斗与试招存档隔离，全部成功后发布 `dist`。
 - Pages 直接部署这一分支，无需先合并 `main`。不依赖仓库变量 `ENABLE_PAGES`，也不发布其他仓库。
 - 推送成功不等于网站发布成功。等部署结束，访问试玩页面，并核对 `https://mud4u404.github.io/game007/version.json` 的 `commit` 等于本轮提交。
 - 用手机尺寸验证选出身、点人交涉、行路以及页面资源正常加载后，向用户交付网址。可附 `&v=<短提交号>` 帮助区分分享的版本，但同一网址始终服务最近成功发布的代码。

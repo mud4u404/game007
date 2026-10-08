@@ -5,10 +5,17 @@ import './designs/board.css';
 import './designs/ranger.css';
 import './designs/shell.css';
 import './designs/focus.css';
+import './designs/room.css';
+import './designs/room-arrival.css';
+import './designs/room-combat.css';
 import { renderExplore } from './designs/explore';
 import { renderBoard } from './designs/board';
 import { renderRanger } from './designs/ranger';
 import { renderFocus } from './designs/focus';
+import { renderRoom } from './designs/room';
+import { renderRoomArrival } from './designs/room-arrival';
+import { renderRoomCombat } from './designs/room-combat';
+import { chooseRoomTarget, roomTargets } from './designs/room-model';
 import { smartSuggestions, travelMinutes } from './suggestions';
 import type { WorldDesignContext } from './design-context';
 import { icon } from './icons';
@@ -30,13 +37,15 @@ const LAYOUTS = [
   { id: 'cards', name: '场景探索', number: '一', note: '人在景中，路在脚下。点眼前的人，再决定怎么做。', detail: '山水长卷 · 人物定位与去路同屏' },
   { id: 'scroll', name: '事务总览', number: '二', note: '接着上回的事。线索、待办与下一步放在一起。', detail: '市井告示 · 从未完事务直接行动' },
   { id: 'compact', name: '情境操作', number: '三', note: '先看眼下处境，再选适合此刻的行动。', detail: '掌上游侠 · 状态建议与拇指快捷操作' },
+  { id: 'room', name: '同屏行动', number: '新', note: '人、物、去路就在眼前。选对象，直接行动。', detail: '交互试作 · 固定操作区' },
 ] as const;
 type PlayableLayout = typeof LAYOUTS[number]['id'];
 // The withdrawn renderer remains archived; URLs and controls only accept the
-// three playable layouts. Old focus links resolve through the same migration.
+// playable layouts. Old focus links resolve through the same migration.
 type Layout = PlayableLayout | 'focus';
 const isPlayableLayout = (value: string | null): value is PlayableLayout => LAYOUTS.some(l => l.id === value);
 const requestedLayout = new URLSearchParams(location.search).get('layout');
+const requestedPractice = new URLSearchParams(location.search).get('trial') === 'combat';
 let storedLayout: string | null = null;
 try { storedLayout = localStorage.getItem(LAYOUT_KEY); } catch { /* preferences are optional */ }
 let layout: Layout = isPlayableLayout(requestedLayout) ? requestedLayout : isPlayableLayout(storedLayout) ? storedLayout : 'cards';
@@ -84,23 +93,28 @@ let started = Boolean(loaded);
 let chosenOrigin: OriginId = 'porter';
 let tab: Tab = 'world';
 let selected = '';
+let roomSelected = '';
+let roomWasStopped = state.stopped;
+let resetRoomActions = false;
+let resetRoomFeedback = false;
 let message = loaded ? '' : '初到青溪，渡口还没人认得你。先挣几文盘缠，或去看看岸边那场争执，都由你。';
 let changes: string[] = [];
 let responseSection: WorldDesignContext['responseSection'] = 'scene';
 let modal: 'journal' | 'origins' | 'about' | 'layouts' | 'menu' | 'status' | 'person-actions' | 'focus-actions' | null = null;
 let confirmOrigin: OriginId | null = null;
-let activeFight: { request: BattleRequest; battle: DemoBattle } | null = null;
+let activeFight: { request: BattleRequest; battle: DemoBattle; practice?: { medicine: number } } | null = null;
 let fightPaused = false;
 let tellSeconds = 0;
 let hasResponded = false;
 let lastBattleTick = 0;
+let fightPointerHeld = false;
 let modalReturnFocus: string | null = null;
 let lastTrigger: string | null = null;
 let storageFailed = false;
 try { document.documentElement.dataset.theme = localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light'; } catch { /* private browsing */ }
 
 function save(): void {
-  if (!started) return;
+  if (!started || activeFight?.practice) return;
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); storageFailed = false; }
   catch { storageFailed = true; }
 }
@@ -123,6 +137,7 @@ function originCard(o: typeof ORIGINS[number], arrival = false): string {
 }
 
 function arrivalView(): string {
+  if (layout === 'room') return renderRoomArrival(chosenOrigin);
   if (layout === 'focus') return `<main class="arrival-screen focus-arrival"><div class="arrival-scroll"><div class="focus-arrival-hero"><header class="focus-arrival-top"><span>青溪 · 初来乍到</span><button class="icon-button" data-ui="menu" aria-label="设置">•••</button></header><div class="focus-arrival-heading"><h1>无名之辈，<br>也能搅动江湖。</h1><p>一身布衣，二十八文。<br>你的第一步，从哪里来？</p></div></div><div class="focus-origin-heading"><h2>选一个来处</h2><span>都还不会武功</span></div><div class="arrival-origins" aria-label="选择出身">${ORIGINS.map(o => originCard(o, true)).join('')}</div><p class="focus-origin-summary">${esc(ORIGINS.find(o => o.id === chosenOrigin)!.description)}</p></div><div class="arrival-footer"><button class="button wide" data-ui="begin">以${esc(ORIGINS.find(o => o.id === chosenOrigin)!.name)}起步 ${icon('arrow')}</button></div></main><div id="modal-root"></div><div id="fight-root"></div><div class="sr-only" aria-live="polite" id="announcer"></div>`;
   return `<main class="arrival-screen"><div class="arrival-scroll"><div class="arrival-scene"><img src="./demo/harbor.webp" alt="微雨初晴的青溪渡口"><button class="button secondary" data-ui="layouts">${icon('map')} 挑一种界面</button></div><div class="arrival-heading"><span class="eyebrow">江湖夜雨 · 青溪试游</span><h1>还不会武功的你，<br>先从哪里来？</h1><p>身上二十八文，一包行李。<br>先谋一口饭，或去认识一个教你握剑的人。</p><span class="pill green">四种出身 · 都从未入门开始</span></div><div class="arrival-origins" aria-label="选择出身">${ORIGINS.map(o => originCard(o, true)).join('')}</div></div><div class="arrival-footer"><button class="button wide" data-ui="begin">以${esc(ORIGINS.find(o => o.id === chosenOrigin)!.name)}起步 ${icon('arrow')}</button><p>出身决定起点，往后的路由你自己走。</p></div></main><div id="modal-root"></div><div id="fight-root"></div><div class="sr-only" aria-live="polite" id="announcer"></div>`;
 }
@@ -180,6 +195,8 @@ function sidebar(): string {
 }
 
 function render(): void {
+  if (layout === 'room' && state.stopped && !roomWasStopped) roomSelected = 'constable';
+  roomWasStopped = state.stopped;
   document.documentElement.dataset.page = started ? tab : 'arrival';
   if (!started) {
     const scroll = document.querySelector('.arrival-scroll')?.scrollTop ?? 0;
@@ -187,12 +204,17 @@ function render(): void {
     const scroller = document.querySelector('.arrival-scroll');
     if (scroller) scroller.scrollTop = scroll;
     renderModal();
+    renderFight();
     return;
   }
   save();
   const mainScroll = document.querySelector('.play-scroll')?.scrollTop ?? 0;
+  const roomScroll = new Map(Array.from(root.querySelectorAll<HTMLElement>('[data-room-scroll]'), el => [el.dataset.roomScroll, el.scrollTop]));
+  const roomFocus = layout === 'room' ? (document.activeElement as HTMLElement)?.dataset.ui : undefined;
   const openDetails = Array.from(root.querySelectorAll('details[open]'), el => el.getAttribute('data-section') ?? el.className);
-  if (layout === 'focus') {
+  if (layout === 'room') {
+    root.innerHTML = `<div class="demo-layout"><div class="play-column">${tab === 'world' ? '' : `<header class="topbar"><h1>${{ person: '人物', sword: '武学', bag: '行囊', map: '行路' }[tab]}</h1><div class="top-actions"><button class="icon-button" data-ui="layouts" aria-label="切换界面">${icon('map')}</button><button class="icon-button" data-ui="menu" aria-label="设置">${icon('sun')}</button></div></header>`}<main class="play-scroll" id="main-content">${tab === 'world' ? worldView() : tab === 'person' ? personView() : tab === 'sword' ? skillsView() : tab === 'bag' ? bagView() : mapView()}${storageFailed ? `<footer class="save-note">浏览器未能保存进度，请暂勿关闭此页</footer>` : ''}</main>${nav('bottom-nav')}</div></div><div id="modal-root"></div><div id="fight-root"></div><div class="sr-only" aria-live="polite" id="announcer"></div>`;
+  } else if (layout === 'focus') {
     const titles = { world: '', person: '我', sword: '武学', bag: '行囊', map: '行路' };
     root.innerHTML = `<div class="demo-layout"><div class="play-column">${tab === 'world' ? '' : `<header class="topbar"><div><h1>${titles[tab]}</h1></div><div class="top-actions">${tab === 'sword' || tab === 'bag' ? `<button class="icon-button" data-ui="tab:person" aria-label="返回人物">${icon('back')}</button>` : ''}<button class="icon-button" data-ui="menu" aria-label="设置">•••</button></div></header>`}<main class="play-scroll" id="main-content">${tab === 'world' ? worldView() : tab === 'person' ? focusPersonView() : tab === 'sword' ? focusSkillsView() : tab === 'bag' ? bagView() : focusMapView()}${storageFailed ? `<footer class="save-note">${icon('shield')}浏览器未能保存进度，请暂勿关闭此页</footer>` : ''}</main>${nav('bottom-nav')}</div></div><div id="modal-root"></div><div id="fight-root"></div><div class="sr-only" aria-live="polite" id="announcer"></div>`;
   } else
@@ -202,8 +224,15 @@ function render(): void {
     if (openDetails.includes(el.getAttribute('data-section') ?? el.className)) el.open = true;
   }
   if (scroller) scroller.scrollTop = mainScroll;
+  if (layout === 'room') for (const el of root.querySelectorAll<HTMLElement>('[data-room-scroll]')) {
+    const reset = resetRoomActions && el.dataset.roomScroll === 'actions' || resetRoomFeedback && el.dataset.roomScroll === 'feedback';
+    el.scrollTop = reset ? 0 : roomScroll.get(el.dataset.roomScroll) ?? 0;
+  }
+  resetRoomActions = false;
+  resetRoomFeedback = false;
   renderModal();
   renderFight();
+  if (roomFocus && !modal && !activeFight) Array.from(root.querySelectorAll<HTMLButtonElement>('button[data-ui]:not(:disabled)')).find(button => button.dataset.ui === roomFocus)?.focus({ preventScroll: true });
 }
 
 function resultCard(): string {
@@ -232,6 +261,12 @@ function worldView(): string {
     legacy: state.inventory.old_sword > 0 ? `<button class="world-notice" data-ui="origins">${icon('reset')}<span><b>体验新的起点</b><small>旧进度可以继续，也可以换出身，从学武前开始。</small></span>${icon('arrow')}</button>` : '',
     theme: document.documentElement.dataset.theme ?? 'light', actionCard, relation: relationText,
   };
+  if (layout === 'room') {
+    const target = chooseRoomTarget(state, roomSelected);
+    if (target.id !== roomSelected) resetRoomActions = true;
+    roomSelected = target.id;
+    return renderRoom(ctx, roomSelected);
+  }
   return layout === 'focus' ? renderFocus(ctx) : layout === 'cards' ? renderExplore(ctx) : layout === 'scroll' ? renderBoard(ctx) : renderRanger(ctx);
 }
 
@@ -326,6 +361,7 @@ function renderModal(): void {
   if (modal === 'menu') {
     title = '设置';
     content = `<div class="focus-menu-grid"><button class="button secondary" data-ui="theme">${icon(document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon')}${document.documentElement.dataset.theme === 'dark' ? '浅色外观' : '深色外观'}</button><button class="button secondary" data-ui="layouts">${icon('map')}界面对比</button>${started ? `<button class="button secondary" data-ui="journal">${icon('book')}记事</button><button class="button secondary" data-ui="origins">${icon('reset')}重新开始</button>` : ''}<button class="button secondary" data-ui="about">${icon('spark')}关于试玩</button></div><p class="fine-print">${started ? storageFailed ? '进度保存失败，请暂勿关闭。' : '进度保存在本机。' : '选定出身后开始。'}</p>`;
+    if (layout === 'room') content += `<button class="button secondary wide" data-ui="practice">${icon('sword')}试招 · 不影响江湖进度</button>`;
   } else if (modal === 'status') {
     title = '眼下状态'; content = focusStatus();
   } else if (modal === 'person-actions') {
@@ -377,12 +413,13 @@ function announce(text: string): void {
 }
 
 function outcome(result: ActionResult): void {
+  resetRoomFeedback = true;
   message = result.text;
   changes = result.changes ?? [];
   if (result.battle) beginFight(result.battle);
   render();
   announce(result.text);
-  if (!result.battle) (document.querySelector('.modal .reply-card') ?? document.querySelector('.reply-card'))?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  if (!result.battle && layout !== 'room') (document.querySelector('.modal .reply-card') ?? document.querySelector('.reply-card'))?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 function beginFight(request: BattleRequest): void {
@@ -395,18 +432,74 @@ function beginFight(request: BattleRequest): void {
   lastBattleTick = Date.now();
 }
 
+function practiceUrl(enabled: boolean): void {
+  try {
+    const url = new URL(location.href);
+    if (enabled) url.searchParams.set('trial', 'combat');
+    else url.searchParams.delete('trial');
+    history.replaceState(null, '', url);
+  } catch { /* local file previews may restrict history */ }
+}
+
+function beginPractice(): void {
+  if (layout !== 'room' || (activeFight && !activeFight.practice) || state.pendingBattle) return;
+  // This character never replaces world state, enters a save slot, or settles
+  // a battle into the world's quests, time, resources, or relationships.
+  const visitor = createDemo('apprentice', '试招客');
+  visitor.power = visitor.sword = visitor.footwork = 2;
+  const d = derived(visitor);
+  const request: BattleRequest = { foe: 'guard', reason: 'rescue', name: '卫衡' };
+  activeFight = { request, practice: { medicine: 1 }, battle: createBattle({
+    name: visitor.name, hp: d.hpMax, mp: d.mpMax, hpMax: d.hpMax, mpMax: d.mpMax,
+    attrs: visitor.attrs, power: visitor.power, sword: visitor.sword,
+    footwork: visitor.footwork, stance: visitor.stance,
+  }, request) };
+  modal = null;
+  tellSeconds = 0;
+  hasResponded = false;
+  fightPaused = false;
+  lastBattleTick = Date.now();
+  practiceUrl(true);
+  renderModal();
+  renderFight();
+  announce('试招开始，借用入门武学，不影响江湖进度。');
+}
+
+function endPractice(): void {
+  if (!activeFight?.practice) return;
+  activeFight = null;
+  fightPaused = false;
+  practiceUrl(false);
+  renderModal();
+  renderFight();
+  (document.querySelector<HTMLButtonElement>('[data-ui="practice"]') ?? document.querySelector<HTMLButtonElement>('[data-ui="menu"]'))?.focus({ preventScroll: true });
+  announce('试招结束，江湖进度保持原样。');
+}
+
 function renderFight(): void {
   const host = document.querySelector('#fight-root');
   if (!host) return;
   if (!activeFight) { host.innerHTML = ''; return; }
   const b = activeFight.battle;
+  const opening = !host.querySelector('.battle');
+  const hadBattleFocus = host.contains(document.activeElement);
   const focusBefore = (document.activeElement as HTMLElement)?.dataset.ui;
   const tell = b.phase === 'tell';
   const result = b.phase === 'result';
+  if (layout === 'room') {
+    host.innerHTML = renderRoomCombat({ battle: b, request: activeFight.request,
+      playerName: b.player.name, stance: b.stance, paused: fightPaused,
+      tellSeconds, hasResponded, medicine: activeFight.practice?.medicine ?? state.inventory.medicine ?? 0,
+      practice: Boolean(activeFight.practice),
+    });
+  } else {
   host.innerHTML = `<div class="battle-scrim"><section class="battle" role="dialog" aria-modal="true" aria-label="与${esc(b.foeName)}交手"><header class="battle-header"><span>${pill(activeFight.request.reason === 'spar' ? '以武会友' : activeFight.request.reason === 'arrest' ? '脱身' : '渡口风波', 'amber')}<small>第 ${b.round} 合</small></span><button class="icon-button" data-ui="fight:pause" aria-label="${fightPaused ? '继续交手' : '暂停交手'}" ${result ? 'disabled' : ''}>${fightPaused ? '▶' : 'Ⅱ'}</button></header><div class="battle-foe"><span class="foe-stamp">${esc(b.foeName[0])}</span><div><span class="eyebrow">${activeFight.request.reason === 'arrest' ? '巡街捕头 · 铁尺拦路' : activeFight.request.foe === 'guard' ? '横刀拦路 · 漕帮护卫' : '旧武场 · 以剑相试'}</span><h2>${esc(b.foeName)}</h2>${bar('气血', b.foeHp, b.foeMaxHp, 'hp')}</div></div><div class="momentum"><span>守</span><div><i style="left:${Math.max(0, Math.min(100, b.momentum))}%"></i></div><span>攻</span></div><div class="battle-log" aria-live="polite" aria-relevant="additions">${b.logs.slice(-12).map(l => `<p class="battle-line ${l.tone}">${esc(l.text)}</p>`).join('')}</div><div class="battle-player"><div class="battle-player-title"><b>${esc(state.name)}</b><span>${state.stance === 'steady' ? '守中 · 留力回锋' : '逐流 · 抢步争先'}</span></div><div class="battle-resources">${bar('气血', b.playerHp, b.playerMaxHp, 'hp')}${bar('内力', b.playerMp, b.playerMaxMp, 'mp')}${bar('怒气', b.rage, 100, 'rage')}</div></div><div class="battle-controls">${result ? `<div class="battle-result"><span class="eyebrow">${b.result === 'win' ? '这一场，有了分晓' : b.result === 'flee' ? '留得青山在' : '胜负，也是历练'}</span><h2>${b.result === 'win' ? '收剑，承让。' : b.result === 'flee' ? '借隙脱身' : '棋差一着'}</h2><p>${b.result === 'win' ? activeFight.request.reason === 'rescue' ? '拦路的刀垂了下去。身后的许青，终于松了一口气。' : '对方收起兵刃，重新打量了你一眼。' : '这一回的伤与见识，都会带回江湖。'}</p><button class="button wide" data-ui="fight:finish">回到江湖 ${icon('arrow')}</button></div>` : tell ? `<div class="tell-heading"><span>${pill('见招拆招', 'amber')}<b>${esc(b.tell?.name ?? '来势陡变')}</b></span><small>${hasResponded ? `${tellSeconds} 息` : '先看清，再出手'}</small></div><p class="tell-prose">${esc(b.tell?.text ?? '')}</p><div class="response-grid">${responses(b).map(r => `<button class="response-button" data-ui="respond:${r.key}" ${r.disabled || fightPaused ? 'disabled' : ''}><div><b>${r.label}</b><strong>${Math.round(r.chance * 100)}<small>%</small></strong></div><span>${esc(r.skill)} · ${r.cost ? `耗内 ${r.cost}` : '不耗内力'}</span></button>`).join('')}</div><p class="response-hint">成算来自根基与火候。时限耗尽，会自行择机应对。</p>` : `<div class="moves-grid"><button class="move-button" data-ui="fight:perform" ${b.player.power === 0 || b.cooldown > 0 || b.playerMp < b.performCost || fightPaused ? 'disabled' : ''}><span>绝招</span><b>${esc(b.performName)}</b><small>${b.player.power === 0 ? '先请教学会养息功' : b.cooldown ? `调息 ${b.cooldown} 合` : `内力 ${b.performCost}`}</small></button><button class="move-button ultimate" data-ui="fight:ultimate" ${b.rage < 100 || fightPaused ? 'disabled' : ''}><span>杀招</span><b>${esc(b.ultName)}</b><small>${b.rage < 100 ? `怒气 ${Math.floor(b.rage)} / 100` : '此刻可用'}</small></button></div>`}${result ? '' : `<div class="battle-utility"><span>${fightPaused ? '已暂停，点右上角继续' : tell ? '先判断，再拆招' : '自动对拆中 · 你来决定出招时机'}</span><button data-ui="fight:medicine" ${!(state.inventory.medicine > 0) || b.playerHp >= b.playerMaxHp || fightPaused ? 'disabled' : ''}>伤药 ${state.inventory.medicine || 0}</button><button data-ui="fight:flee" ${fightPaused ? 'disabled' : ''}>${activeFight.request.reason === 'spar' ? '认输' : '脱身'}</button></div>`}</div></section></div>`;
+  }
   const log = host.querySelector('.battle-log');
   if (log) log.scrollTop = log.scrollHeight;
-  if (focusBefore) Array.from(host.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')).find(el => el.dataset.ui === focusBefore)?.focus({ preventScroll: true });
+  const restoredFocus = focusBefore ? Array.from(host.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')).find(el => el.dataset.ui === focusBefore) : undefined;
+  if (restoredFocus) restoredFocus.focus({ preventScroll: true });
+  else if (opening || hadBattleFocus) host.querySelector<HTMLButtonElement>(result ? '[data-ui="fight:finish"]' : '[data-ui="fight:pause"]')?.focus({ preventScroll: true });
 }
 
 root.addEventListener('click', e => {
@@ -420,10 +513,12 @@ root.addEventListener('click', e => {
     render();
   } else if (cmd === 'begin' && !started) {
     state = createDemo(chosenOrigin); started = true;
+    roomSelected = '';
     message = '';
     render();
   } else if (cmd === 'layout' && LAYOUTS.some(l => l.id === val)) {
     layout = val as Layout;
+    if (layout === 'room' && state.stopped) roomSelected = 'constable';
     document.documentElement.dataset.layout = layout;
     try { localStorage.setItem(LAYOUT_KEY, layout); } catch { /* preference is optional */ }
     try { const url = new URL(location.href); url.searchParams.set('layout', layout); history.replaceState(null, '', url); } catch { /* file previews may restrict history */ }
@@ -433,6 +528,11 @@ root.addEventListener('click', e => {
   } else if (cmd === 'quick') {
     document.querySelector(`[data-section="${val}"]`)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
   } else if (cmd === 'tab') { tab = val as Tab; modal = null; message = ''; changes = []; render(); document.querySelector('.play-scroll')?.scrollTo(0, 0); }
+  else if (cmd === 'room-select' && layout === 'room') {
+    if (!roomTargets(state).some(target => target.id === val)) return;
+    roomSelected = val; resetRoomActions = true;
+    render();
+  }
   else if (cmd === 'select') {
     if (layout === 'focus') { selected = val; message = ''; changes = []; openModal('person-actions'); return; }
     selected = val; message = ''; render();
@@ -444,11 +544,12 @@ root.addEventListener('click', e => {
       : button.closest('[data-section="scene"]') ? 'scene' : 'people';
     outcome(act(state, button.dataset.ui!.slice(7)));
   }
-  else if (cmd === 'travel') { tab = 'world'; modal = null; selected = ''; responseSection = 'scene'; outcome(travel(state, val as PlaceId)); document.querySelector('.play-scroll')?.scrollTo(0, 0); }
+  else if (cmd === 'travel') { tab = 'world'; modal = null; selected = ''; roomSelected = ''; resetRoomActions = true; responseSection = 'scene'; outcome(travel(state, val as PlaceId)); document.querySelector('.play-scroll')?.scrollTo(0, 0); }
   else if (cmd === 'dismiss') { message = ''; render(); }
   else if (cmd === 'train') outcome(train(state, val as 'inner' | 'sword' | 'footwork'));
   else if (cmd === 'stance' && state.sword > 0) { setStance(state, val as 'steady' | 'flowing'); message = `你收剑定了定神，接下来走${val === 'steady' ? '稳守回锋' : '抢步争先'}的路数。`; changes = []; render(); }
   else if (cmd === 'medicine') outcome(act(state, 'use-medicine'));
+  else if (cmd === 'practice') beginPractice();
   else if (cmd === 'theme') {
     const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
     document.documentElement.dataset.theme = theme;
@@ -459,14 +560,17 @@ root.addEventListener('click', e => {
   else if (cmd === 'origin') {
     if (confirmOrigin !== val) { confirmOrigin = val as OriginId; renderModal(); return; }
     state = createDemo(val as OriginId); started = true; selected = ''; tab = 'world'; modal = null; confirmOrigin = null;
+    roomSelected = '';
     message = ''; changes = []; responseSection = 'scene'; render();
     document.querySelector('.play-scroll')?.scrollTo(0, 0);
   } else if (activeFight && cmd === 'respond') {
     const b = activeFight.battle;
-    if (fightPaused) return;
+    if (fightPaused || !responses(b).some(response => response.key === val && !response.disabled)) return;
     respond(b, val as ResponseKey); hasResponded = true; lastBattleTick = Date.now(); renderFight();
   } else if (activeFight && cmd === 'fight') {
     const b = activeFight.battle;
+    if (activeFight.practice && (val === 'exit-practice' || (val === 'finish' && b.phase === 'result'))) { endPractice(); return; }
+    if (activeFight.practice && val === 'retry-practice') { beginPractice(); return; }
     if (val === 'pause') { fightPaused = !fightPaused; lastBattleTick = Date.now(); }
     else if (val === 'finish' && b.phase === 'result' && b.result) {
       message = settleBattle(state, activeFight.request, b.result, b.playerHp, b.playerMp);
@@ -476,7 +580,10 @@ root.addEventListener('click', e => {
       if (val === 'perform') perform(b);
       else if (val === 'ultimate') ultimate(b);
       else if (val === 'flee') flee(b);
-      else if (val === 'medicine' && state.inventory.medicine > 0 && takeMedicine(b)) { state.inventory.medicine--; save(); }
+      else if (val === 'medicine' && (activeFight.practice?.medicine ?? state.inventory.medicine ?? 0) > 0 && takeMedicine(b)) {
+        if (activeFight.practice) activeFight.practice.medicine--;
+        else { state.inventory.medicine--; save(); }
+      }
     }
     renderFight();
   }
@@ -493,7 +600,16 @@ document.addEventListener('keydown', e => {
   else if (!e.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
 });
 
+// Keep a live rerender from replacing a response between finger-down and tap.
+root.addEventListener('pointerdown', e => {
+  if ((e.target as HTMLElement).closest('.battle button')) fightPointerHeld = true;
+});
+document.addEventListener('pointerup', () => { setTimeout(() => { fightPointerHeld = false; }, 0); });
+document.addEventListener('pointercancel', () => { fightPointerHeld = false; });
+document.addEventListener('visibilitychange', () => { fightPointerHeld = false; lastBattleTick = Date.now(); });
+
 setInterval(() => {
+  if (fightPointerHeld) return;
   if (!activeFight || fightPaused || document.hidden || activeFight.battle.phase === 'result') { lastBattleTick = Date.now(); return; }
   const b = activeFight.battle;
   const now = Date.now();
@@ -514,6 +630,7 @@ setInterval(() => {
   }
 }, 200);
 
-if (state.pendingBattle) beginFight(state.pendingBattle);
+if (state.pendingBattle) { beginFight(state.pendingBattle); if (requestedPractice) practiceUrl(false); }
 render();
+if (requestedPractice && layout === 'room' && !activeFight) beginPractice();
 if (chooseLayoutOnStart && !activeFight) openModal('layouts');

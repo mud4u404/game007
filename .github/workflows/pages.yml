@@ -36,6 +36,12 @@ jobs:
         env:
           SMOKE_CHANNEL: chrome
         run: node scripts/entry-smoke.mjs
+      - name: 验证同屏行动与手机连续操作
+        env:
+          SMOKE_CHANNEL: chrome
+        run: |
+          node scripts/room-smoke.mjs
+          node scripts/room-combat-smoke.mjs
       - name: 验证三种手机操作与玩法
         env:
           SMOKE_CHANNEL: chrome

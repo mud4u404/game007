@@ -12,7 +12,8 @@
 
 ## 试玩
 
-- **青溪试游 · 自由江湖 Demo**：[云端打开](https://mud4u404.github.io/game007/demo.html?layout=choose)。选择「场景探索／事务总览／情境操作」后，从四种普通人出身之一开始谋生、查事、学武。人物、行动、去路可直接操作；三种界面共用进度。大图配人物抽屉的电影版已撤下，旧 `layout=focus` 链接会回到当前可用方案。见 [试玩说明](docs/demo.md)。
+- **同屏行动 Demo**：[进入江湖](https://mud4u404.github.io/game007/demo.html?layout=room) · [直接试招](https://mud4u404.github.io/game007/demo.html?layout=room&trial=combat)。人物、物件、去路和连续操作同屏；战斗用字号与局部颜色区分来招、时限、低气血。四种出身仍从零武学开始，独立试招不改变正式进度。见 [试玩说明](docs/demo.md)。
+- **其他布局**：[界面对比](https://mud4u404.github.io/game007/demo.html?layout=choose)。同屏行动与原三种布局共用演示进度；旧 `layout=focus` 链接会迁移到可用方案。
 - **云端发布**：GitHub Pages 已启用；开发分支推送通过检查后自动发布，无需下载文件。见 [云端试玩说明](docs/deployment.md)。
 - **早期单文件原型**：https://claude.ai/artifact/X6NYxuUWqFRvfd94GSHUDt ，源文件在 [prototype/](prototype/)。
 
@@ -53,7 +54,9 @@ npm run check      # 类型检查与全部测试（含内容校验）
 npm run build      # 打包到 dist/
 npm run smoke      # 冒烟测试：无头浏览器从标题画面一路玩到首领战
 npm run demo:smoke # 青溪试游：玩法、战斗、手机布局与存档隔离
-npm run entry:smoke # 三方案选择、旧链接迁移、继续存档与战斗
+npm run entry:smoke # 四方案选择、旧链接迁移、继续存档与战斗
+npm run room:smoke # 同屏行动、连续操作、出身与任务
+npm run room:combat-smoke # 分级战斗、手机触控、独立试招与存档
 npm run ux:smoke   # 旧三种操作方案：真实触控、建议与代价、阅读和切换不耗时
 npm run demo:export # 生成可离线打开的单文件 Demo
 ```

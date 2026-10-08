@@ -18,6 +18,8 @@ const paths: Record<string, string> = {
   tea: '<path d="M4 10h12v4a6 6 0 0 1-12 0zm12 1h2a3 3 0 0 1 0 6h-3M3 22h16M7 3v3M12 2v4"/>',
   reset: '<path d="M3 10a9 9 0 1 1 1 8M3 3v7h7"/>',
   check: '<path d="M5 12l4 4L19 6"/>',
+  more: '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
+  box: '<path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10M7.5 5l9 4v4"/>',
   spark: '<path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/>',
 };
 export const icon = (name: string, cls = ''): string => `<svg class="icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.spark}</svg>`;

@@ -1,0 +1,222 @@
+/* Object selection, world feedback and action controls share one persistent room. */
+html[data-layout=room] {
+  --paper: #f4f6f8;
+  --panel: #ffffff;
+  --ink: #222d36;
+  --muted: #62717e;
+  --line: #dce2e8;
+  --soft: #f6f8fa;
+  --green: #267dc0;
+  --green-soft: #e9f3fc;
+  --red: #a9453b;
+  --red-soft: #f6e7e1;
+  --amber: #896b39;
+  --amber-soft: #f0eadc;
+  --blue: #267dc0;
+  --shadow: none;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --serif: var(--sans);
+  --room-action-height: 220px;
+  --room-object-height: 164px;
+  color-scheme: light;
+}
+html[data-layout=room][data-theme=dark] {
+  --paper: #182127;
+  --panel: #202c32;
+  --ink: #e5ecec;
+  --muted: #a2b1b8;
+  --line: #3a4a52;
+  --soft: #29373e;
+  --green: #8dc5df;
+  --green-soft: #2b4553;
+  --red: #efa296;
+  --red-soft: #45302e;
+  --amber: #d7bc82;
+  --amber-soft: #423c2c;
+  --blue: #8dc5df;
+  color-scheme: dark;
+}
+html[data-layout=room] body { background: var(--paper); letter-spacing: 0; }
+html[data-layout=room] :is(h1,h2,h3,b,strong) { letter-spacing: 0; }
+html[data-layout=room] .demo-layout { display: block; width: 100%; max-width: 580px; height: 100dvh; min-height: 0; padding: 0; border-inline: 1px solid var(--line); background: var(--panel); }
+html[data-layout=room] .play-column { height: 100%; }
+html[data-layout=room] .brand-rail,
+html[data-layout=room] .world-sidebar,
+html[data-layout=room] .quick-dock { display: none; }
+html[data-layout=room] .play-scroll { padding: 12px; gap: 12px; }
+html[data-layout=room][data-page=world] .play-scroll { padding: 0; gap: 0; overflow: hidden; }
+html[data-layout=room] .room-world { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+html[data-layout=room] .room-header { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; padding: calc(7px + env(safe-area-inset-top)) 12px 6px; min-height: 64px; border-bottom: 1px solid var(--line); }
+html[data-layout=room] .room-location { min-width: 0; }
+html[data-layout=room] .room-location h1 { display: flex; align-items: center; gap: 6px; font-size: 22px; line-height: 1.3; font-weight: 750; }
+html[data-layout=room] .room-location h1 .icon { width: 16px; height: 16px; color: var(--green); }
+html[data-layout=room] .room-location time { font-size: 10px; line-height: 1.4; color: var(--muted); font-variant-numeric: tabular-nums; }
+html[data-layout=room] .room-tools { display: flex; gap: 2px; margin-right: -5px; }
+html[data-layout=room] .room-tools button { width: 44px; min-height: 44px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px; color: var(--muted); border-radius: 6px; font-size: 9px; line-height: 1.35; }
+html[data-layout=room] .room-tools .icon { width: 17px; height: 17px; }
+html[data-layout=room] .room-tools button:hover { background: var(--soft); color: var(--green); }
+html[data-layout=room] .room-resources { flex: 0 0 49px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; min-height: 44px; padding: 6px 14px 7px; background: var(--panel); }
+html[data-layout=room] .room-resources.has-inner { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+html[data-layout=room] .room-resources > span { position: relative; display: grid; grid-template-columns: auto 1fr; gap: 0 6px; align-items: baseline; }
+html[data-layout=room] .room-resources small { font-size: 10px; color: var(--muted); }
+html[data-layout=room] .room-resources b { font-size: 13px; text-align: right; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
+html[data-layout=room] .room-resources em { font-size: 9px; font-style: normal; color: var(--muted); font-weight: 400; margin-left: 2px; }
+html[data-layout=room] .room-meter { grid-column: 1 / -1; height: 5px; background: var(--line); display: block; overflow: hidden; border-radius: 3px; margin-top: 4px; align-self: start; }
+html[data-layout=room] .room-meter > i { display: block; height: 100%; background: var(--green); }
+html[data-layout=room] .room-resources .low b { color: var(--red); }
+html[data-layout=room] .room-resources .low .room-meter > i { background: var(--red); }
+html[data-layout=room] .room-heat { grid-column: 1 / -1; font-style: normal; color: var(--red); font-size: 9px; line-height: 1.2; }
+html[data-layout=room] .room-money-rule { grid-column: 1 / -1; border-top: 5px solid var(--line); border-radius: 3px; margin-top: 4px; align-self: start; }
+html[data-layout=room] .room-exits { display: grid; grid-template-columns: repeat(var(--room-exits), minmax(0, 1fr)); gap: 6px; padding: 0 12px 8px; flex: 0 0 auto; }
+html[data-layout=room] .room-exits button { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 44px; border: 1px solid var(--line); background: var(--soft); border-radius: 7px; line-height: 1.4; }
+html[data-layout=room] .room-exits b { font-size: 13px; font-weight: 650; display: flex; align-items: center; gap: 6px; }
+html[data-layout=room] .room-exits .icon { width: 13px; height: 13px; color: var(--green); }
+html[data-layout=room] .room-exits small { font-size: 9px; color: var(--muted); }
+html[data-layout=room] .room-exits button:hover:not(:disabled) { border-color: var(--green); }
+html[data-layout=room] .room-objects { flex: 0 0 auto; padding: 0 12px 10px; border-bottom: 1px solid var(--line); }
+html[data-layout=room] .room-section-label { height: 24px; display: flex; align-items: center; justify-content: space-between; }
+html[data-layout=room] .room-section-label h2 { font-size: 10px; font-weight: 600; color: var(--muted); }
+html[data-layout=room] .room-section-label > span { font-size: 9px; color: var(--muted); }
+html[data-layout=room] .room-target-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 76px; gap: 7px; max-height: var(--room-object-height); min-height: 52px; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; padding: 1px; }
+html[data-layout=room] .room-target { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; min-height: 44px; gap: 6px; padding: 7px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); }
+html[data-layout=room] .room-target.selected { border-color: var(--green); background: var(--green-soft); box-shadow: inset 0 0 0 1px var(--green); }
+html[data-layout=room] .room-target-icon { display: flex; align-items: center; flex: 0 0 auto; color: var(--muted); }
+html[data-layout=room] .room-target.selected .room-target-icon { color: var(--green); }
+html[data-layout=room] .room-target .icon { width: 27px; height: 27px; }
+html[data-layout=room] .room-target > span:last-child { min-width: 0; }
+html[data-layout=room] .room-target b { display: block; font-size: 13px; font-weight: 650; line-height: 1.5; white-space: nowrap; }
+html[data-layout=room] .room-feedback { flex: 1 1 0; min-height: 48px; display: flex; flex-direction: column; background: var(--paper); }
+html[data-layout=room] .room-feed-scroll { min-height: 0; flex: 1 1 0; padding: 12px 14px; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+html[data-layout=room] .room-look { font-size: 12px; line-height: 1.85; margin-bottom: 10px; }
+html[data-layout=room] .room-stop-note { color: var(--red); border-left: 2px solid var(--red); padding: 4px 8px; font-size: 11px; line-height: 1.6; margin-bottom: 10px; }
+html[data-layout=room] .room-log { list-style: none; margin: 0; padding: 0; }
+html[data-layout=room] .room-log li { display: flex; gap: 9px; margin-top: 10px; }
+html[data-layout=room] .room-log time { flex: 0 0 30px; font-size: 9px; line-height: 2.1; color: var(--muted); font-variant-numeric: tabular-nums; }
+html[data-layout=room] .room-log p { font-size: 11px; line-height: 1.85; color: var(--muted); }
+html[data-layout=room] .room-log .good p { color: var(--green); }
+html[data-layout=room] .room-log .bad p { color: var(--red); }
+html[data-layout=room] .room-log .world p { color: var(--ink); }
+html[data-layout=room] .room-feedback .reply-card { border: 0; border-radius: 0; background: transparent; padding: 0; gap: 8px; }
+html[data-layout=room] .room-latest { border: 1px solid color-mix(in srgb, var(--green) 18%, var(--line)); border-radius: 7px; padding: 9px 10px; background: var(--panel); }
+html[data-layout=room] .room-latest-label { font-size: 10px; line-height: 1.5; color: var(--muted); margin-bottom: 6px; }
+html[data-layout=room] .room-feedback .reply-card p { font: 12px/1.8 var(--sans); }
+html[data-layout=room] .room-feedback .reply-card > button { width: 44px; min-height: 44px; margin: -8px -8px -8px 0; display: grid; place-items: center; flex: 0 0 44px; }
+html[data-layout=room] .room-feedback .reply-line { display: none; }
+html[data-layout=room] .room-feedback .change-tags { gap: 4px; margin-top: 7px; }
+html[data-layout=room] .room-feedback .pill { font-size: 10px; padding: 2px 5px; background: var(--green-soft); }
+html[data-layout=room] .room-actions { flex: 0 0 var(--room-action-height); height: var(--room-action-height); min-height: 0; display: flex; flex-direction: column; padding: 0 12px 8px; border-top: 1px solid var(--line); box-shadow: 0 -4px 14px #182c3505; background: var(--panel); }
+html[data-layout=room] .room-actions > header { display: flex; min-height: 40px; flex: 0 0 40px; align-items: center; justify-content: space-between; gap: 8px; }
+html[data-layout=room] .room-actions h2 { font-size: 16px; line-height: 1.5; font-weight: 700; }
+html[data-layout=room] .room-actions h2 span { margin-left: 9px; font-size: 10px; font-weight: 400; color: var(--muted); }
+html[data-layout=room] .room-actions > header > span { font-size: 9px; color: var(--muted); white-space: nowrap; }
+html[data-layout=room] .room-action-scroll { min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; padding: 1px; flex: 1 1 0; }
+html[data-layout=room] .room-action-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+html[data-layout=room] .room-action { display: flex; position: relative; align-items: center; gap: 10px; min-width: 0; height: 68px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 7px; background: var(--soft); text-align: left; }
+html[data-layout=room] .room-action > .icon { width: 25px; height: 25px; color: var(--green); }
+html[data-layout=room] .room-action-copy { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+html[data-layout=room] .room-action b { font-size: 13px; font-weight: 650; line-height: 1.35; }
+html[data-layout=room] .room-action-copy > span { font-size: 10px; line-height: 1.4; color: var(--muted); }
+html[data-layout=room] .room-action:not(:disabled) { border-color: color-mix(in srgb, var(--green) 30%, var(--line)); }
+html[data-layout=room] .room-action:not(:disabled):hover { background: var(--green-soft); border-color: var(--green); }
+html[data-layout=room] .room-action:disabled { opacity: 1; color: var(--muted); background: var(--paper); padding-top: 13px; }
+html[data-layout=room] .room-action:disabled > .icon { color: var(--muted); }
+html[data-layout=room] .room-action > i { position: absolute; right: 7px; top: 3px; font-size: 8px; line-height: 1.2; font-style: normal; color: var(--muted); }
+html[data-layout=room] .room-action.danger:not(:disabled) :is(b, .icon) { color: var(--red); }
+html[data-layout=room] .room-action-help { margin-top: 4px; }
+html[data-layout=room] .room-action-help > summary { min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; color: var(--muted); font-size: 10px; list-style: none; }
+html[data-layout=room] .room-action-help > summary::-webkit-details-marker { display: none; }
+html[data-layout=room] .room-action-help > summary .icon { width: 14px; height: 14px; transform: rotate(90deg); }
+html[data-layout=room] .room-action-help[open] > summary .icon { transform: rotate(-90deg); }
+html[data-layout=room] .room-target-detail { font-size: 11px; line-height: 1.8; margin-bottom: 10px; color: var(--muted); }
+html[data-layout=room] .room-action-help dl { margin: 0; }
+html[data-layout=room] .room-action-help dl > div { padding: 10px 0; border-top: 1px solid var(--line); }
+html[data-layout=room] .room-action-help dt { font-size: 11px; font-weight: 650; }
+html[data-layout=room] .room-action-help dt small { display: block; font-size: 10px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+html[data-layout=room] .room-action-help dd { margin: 5px 0 0; font-size: 11px; line-height: 1.8; color: var(--muted); }
+html[data-layout=room] .room-action-help dd strong { display: block; margin-top: 4px; color: var(--red); font-weight: 500; }
+html[data-layout=room] .bottom-nav { display: flex; min-height: 62px; flex: 0 0 auto; margin: 0; padding: 5px 7px calc(5px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: var(--panel); box-shadow: none; }
+html[data-layout=room] .bottom-nav button { position: relative; display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 44px; min-height: 50px; padding: 4px; font-size: 10px; line-height: 1.3; color: var(--muted); border-radius: 5px; }
+html[data-layout=room] .bottom-nav .icon { width: 20px; height: 20px; }
+html[data-layout=room] .bottom-nav button.active { color: var(--green); background: var(--green-soft); font-weight: 650; }
+html[data-layout=room] .bottom-nav button.active:before { content: none; }
+html[data-layout=room] .topbar { height: 66px; min-height: 66px; padding: calc(9px + env(safe-area-inset-top)) 15px 9px; border-bottom: 1px solid var(--line); }
+html[data-layout=room] .topbar h1 { margin: 0; font-size: 20px; font-weight: 700; }
+html[data-layout=room] .topbar .eyebrow { display: none; }
+html[data-layout=room] .icon-button { width: 44px; height: 44px; border-radius: 6px; }
+html[data-layout=room] .panel { padding: 16px; border-radius: 7px; }
+html[data-layout=room] .button { min-height: 44px; border-radius: 6px; }
+html[data-layout=room] .button.small { min-height: 44px; }
+html[data-layout=room] .text-button { min-height: 44px; align-items: center; }
+html[data-layout=room] .stance-card { border-radius: 6px; }
+html[data-layout=room] .stance-card > b { font-size: 18px; }
+html[data-layout=room] .identity-seal { font-size: 25px; width: 48px; height: 58px; border-radius: 6px; }
+html[data-layout=room] .identity-panel > div { min-width: 155px; }
+html[data-layout=room] .identity-panel h2 { font-size: 21px; }
+html[data-layout=room] .mini-resources { gap: 10px; }
+html[data-layout=room] .money-card h2 { font-size: 28px; }
+html[data-layout=room] .place-card { padding: 12px; }
+html[data-layout=room] .map-node { min-height: 44px; min-width: 44px; }
+html[data-layout=room] .map-node small { display: block; font-size: 9px; }
+html[data-layout=room] .modal-scrim { padding: 16px; background: #13252e77; backdrop-filter: blur(3px); }
+html[data-layout=room] .modal { max-width: 520px; max-height: 90dvh; border-radius: 9px; }
+html[data-layout=room] .modal > header { padding: 12px 16px; }
+html[data-layout=room] .modal > header > h2 { font-size: 19px; font-weight: 700; }
+html[data-layout=room] .modal-body { padding: 16px; }
+html[data-layout=room] .modal .action-card { min-height: 44px; }
+html[data-layout=room] .focus-status-bars { display: grid; gap: 18px; margin-bottom: 23px; }
+html[data-layout=room] .focus-status-bars .resource > div:first-child { margin-bottom: 8px; }
+html[data-layout=room] .focus-status-bars .resource b { font-size: 13px; }
+html[data-layout=room] .focus-menu-grid { display: grid; gap: 7px; margin-bottom: 16px; }
+html[data-layout=room] .focus-menu-grid > button { min-height: 48px; padding: 10px 12px; justify-content: flex-start; }
+html[data-layout=room] .battle { border-radius: 8px; }
+html[data-layout=room] .battle .foe-stamp { font-size: 27px; border-radius: 6px; }
+html[data-layout=room] .battle :is(h2,.tell-heading b,.move-button b) { letter-spacing: 0; }
+html[data-layout=room] .battle button { min-height: 44px; }
+html[data-layout=room] .room-world button:focus-visible,
+html[data-layout=room] .room-world summary:focus-visible { outline: 2px solid var(--green); outline-offset: -2px; }
+@media (max-width: 600px) {
+  html[data-layout=room] .demo-layout { border-inline: 0; }
+  html[data-layout=room] .battle { border: 0; border-radius: 0; }
+}
+@media (max-width: 370px) {
+  html[data-layout=room] .room-header { padding-inline: 10px; }
+  html[data-layout=room] .room-location h1 { font-size: 17px; }
+  html[data-layout=room] .room-location time { font-size: 9px; }
+  html[data-layout=room] .room-resources { gap: 11px; padding-inline: 11px; }
+  html[data-layout=room] .room-resources.has-inner { gap: 8px; }
+  html[data-layout=room] .room-resources.has-inner > span { gap: 0 3px; }
+  html[data-layout=room] .room-resources.has-inner small { font-size: 9px; }
+  html[data-layout=room] .room-resources.has-inner b { font-size: 11px; }
+  html[data-layout=room] .room-exits { padding-inline: 10px; gap: 5px; }
+  html[data-layout=room] .room-exits b { font-size: 11px; gap: 2px; }
+  html[data-layout=room] .room-exits .icon { width: 10px; height: 10px; }
+  html[data-layout=room] .room-objects { padding-inline: 10px; }
+  html[data-layout=room] .room-target { gap: 5px; padding-inline: 6px; }
+  html[data-layout=room] .room-target b { font-size: 11px; }
+  html[data-layout=room] .room-target .icon { width: 24px; height: 24px; }
+  html[data-layout=room] .room-actions { padding-inline: 10px; }
+  html[data-layout=room] .room-action { padding-inline: 9px; gap: 7px; }
+  html[data-layout=room] .room-action > .icon { width: 21px; height: 21px; }
+  html[data-layout=room] .room-action b { font-size: 12px; }
+  html[data-layout=room] .room-action-copy > span { font-size: 9px; }
+}
+@media (max-height: 660px) {
+  html[data-layout=room] { --room-action-height: 158px; --room-object-height: 96px; }
+  html[data-layout=room] .room-header { min-height: 54px; padding-block: calc(4px + env(safe-area-inset-top)) 4px; }
+  html[data-layout=room] .room-resources { flex-basis: 44px; padding-block: 4px; }
+  html[data-layout=room] .room-exits { padding-bottom: 5px; }
+  html[data-layout=room] .room-section-label { height: 21px; }
+  html[data-layout=room] .room-objects { padding-bottom: 6px; }
+  html[data-layout=room] .room-target-list { grid-auto-rows: 44px; gap: 5px; }
+  html[data-layout=room] .room-target { flex-direction: row; justify-content: flex-start; padding-block: 4px; }
+  html[data-layout=room] .room-target .icon { width: 19px; height: 19px; }
+  html[data-layout=room] .room-feed-scroll { padding: 8px 12px; }
+  html[data-layout=room] .room-actions > header { min-height: 32px; flex-basis: 32px; }
+  html[data-layout=room] .room-action-grid { gap: 5px; }
+  html[data-layout=room] .room-action { height: 57px; padding-block: 7px; }
+  html[data-layout=room] .room-action-copy { gap: 3px; }
+  html[data-layout=room] .room-action:disabled { padding-top: 12px; }
+  html[data-layout=room] .room-action > i { top: 2px; }
+  html[data-layout=room] .bottom-nav { min-height: 58px; padding-block: 3px calc(3px + env(safe-area-inset-bottom)); }
+  html[data-layout=room] .topbar { height: 58px; min-height: 58px; }
+}

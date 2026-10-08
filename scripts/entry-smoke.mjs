@@ -1,5 +1,5 @@
 /**
- * 三方案入口与旧 focus 链接迁移验收；玩法路线由 demo/ux-smoke 覆盖。
+ * 原三方案与新 room 入口、旧 focus 链接迁移验收；玩法路线由 demo/ux-smoke 覆盖。
  * node scripts/entry-smoke.mjs [http://127.0.0.1:5174/demo.html] [截图目录]
  * 无 URL 时测试 dist。迁移存档来自真实选出身、搬货后的浏览器进度。
  */
@@ -10,7 +10,7 @@ import { chromium } from 'playwright';
 
 const SAVE = 'game007-sandbox-demo-v1';
 const LAYOUT = 'game007-sandbox-demo-layout';
-const VARIANTS = ['cards', 'scroll', 'compact'];
+const VARIANTS = ['cards', 'scroll', 'compact', 'room'];
 const VIEWPORTS = [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 430, height: 932 }];
 const SENTINELS = { 'game007-save-v2': 'entry-original-game007-kept', 'jhyy-save-v2': 'entry-original-game006-kept' };
 const shots = process.argv[3] && resolve(process.argv[3]);
@@ -72,7 +72,7 @@ try {
   const chooser = async p => {
     await dialog(p).waitFor();
     const keys = await dialog(p).locator('[data-ui^="layout:"]').evaluateAll(els => els.map(el => el.dataset.ui));
-    assert.deepEqual(keys, VARIANTS.map(id => `layout:${id}`), '入口只应提供原有三种布局');
+    assert.deepEqual(keys, VARIANTS.map(id => `layout:${id}`), '入口应同时提供 room 与原有三种布局');
     assert.equal(await p.locator('[data-ui="layout:focus"]').count(), 0, '电影界面不再是可选方案');
     assert.equal(await p.locator('.focus-world,.focus-arrival').count(), 0, '底层不应继续显示电影界面');
     assert.ok(await dialog(p).evaluate(el => el.contains(document.activeElement)), '选择器应接收键盘焦点');
@@ -111,14 +111,14 @@ try {
     assert.equal(await p.evaluate(key => localStorage.getItem(key), LAYOUT), variant);
     await p.goto(target());
     assert.equal(await currentLayout(p), variant, '无参数链接应沿用选择');
-    assert.equal(await dialog(p).count(), 0, '已有三方案偏好时不应反复提示选择');
+    assert.equal(await dialog(p).count(), 0, '已有有效方案偏好时不应反复提示选择');
     await isolation(p);
     await context.close();
   }
-  log('三个手机尺寸可真实选择三方案，新访客选界面不建档，偏好可续用');
+  log('三个手机尺寸可真实选择四方案，新访客选界面不建档，偏好可续用');
 
   const bootstrap = await makePage({ query: 'cards' });
-  assert.equal(await dialog(bootstrap.p).count(), 0, '明确三方案链接不需再次选择');
+  assert.equal(await dialog(bootstrap.p).count(), 0, '明确可玩方案链接不需再次选择');
   await tap(bootstrap.p, 'choose-origin:porter');
   await tap(bootstrap.p, 'begin');
   const beforeWork = await state(bootstrap.p);
@@ -133,7 +133,7 @@ try {
   for (const variant of VARIANTS) {
     const stored = VARIANTS[(VARIANTS.indexOf(variant) + 1) % VARIANTS.length];
     const { p, context } = await makePage({ query: variant, stored, save: saved });
-    assert.equal(await currentLayout(p), variant, '明确三方案链接应优先其他有效偏好');
+    assert.equal(await currentLayout(p), variant, '明确可玩方案链接应优先其他有效偏好');
     assert.equal(await dialog(p).count(), 0);
     assert.deepEqual(await state(p), saved, '直接选方案不应损失进度');
     await p.reload();
@@ -157,12 +157,12 @@ try {
   }
   for (const variant of VARIANTS) {
     const { p, context } = await makePage({ query: 'focus', stored: variant, save: saved });
-    assert.equal(await currentLayout(p), variant, '旧 focus 分享地址应尊重已选三方案偏好');
+    assert.equal(await currentLayout(p), variant, '旧 focus 分享地址应尊重已选可玩方案偏好');
     assert.equal(await dialog(p).count(), 0, '旧链接不得反复迫使已有玩家选界面');
     assert.deepEqual(await state(p), saved);
     await context.close();
   }
-  log('真实行动存档、旧 focus 链接与偏好迁移、三种直接链接和刷新全部保留进度');
+  log('真实行动存档、旧 focus 链接与偏好迁移、四种直接链接和刷新全部保留进度');
 
   for (const save of [undefined, saved]) {
     const { p, context } = await makePage({ query: 'choose', stored: 'scroll', save });

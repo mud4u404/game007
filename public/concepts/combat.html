@@ -21,6 +21,9 @@
     .eyebrow { font-size: 12px; color: #b8c7c5; letter-spacing: .08em; margin: 0 0 10px; }
     h1 { margin: 0 0 12px; font-size: clamp(27px, 4vw, 38px); line-height: 1.3; letter-spacing: -.035em; font-weight: 600; }
     header p:last-child { margin: 0; color: #b4bbbb; font-size: 15px; line-height: 1.7; }
+    .play-links { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:24px; }
+    .play-links a { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:12px 18px; border:1px solid #526d67; border-radius:10px; font-size:14px; text-decoration:none; background:#dcebe5; color:#14221e; }
+    .play-links a + a { color:#dcebe5; background:#25312d; }
     .state-switch { display: none; }
     .comparison { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
     figure { margin: 0; min-width: 0; }
@@ -68,6 +71,7 @@
       <h1>先看来招，再做应对。</h1>
       <p>同一套布局，随战况改变字号与强调。操作位置保持稳定。</p>
     </header>
+    <nav class="play-links" aria-label="开始试玩"><a href="../demo.html?layout=room&amp;trial=combat">试玩这套战斗 →</a><a href="../demo.html?layout=room">进入江湖</a></nav>
     <div class="state-switch" role="group" aria-label="选择战况效果图">
       <button data-select="calm" aria-pressed="false"><b>平稳交锋</b><span>从容判断</span></button>
       <button data-select="warning" aria-pressed="true"><b>敌招将至</b><span>准备应对</span></button>

@@ -16,6 +16,8 @@
     "demo:smoke": "vite build && node scripts/demo-smoke.mjs",
     "ux:smoke": "vite build && node scripts/ux-smoke.mjs",
     "entry:smoke": "vite build && node scripts/entry-smoke.mjs",
+    "room:smoke": "vite build && node scripts/room-smoke.mjs",
+    "room:combat-smoke": "vite build && node scripts/room-combat-smoke.mjs",
     "demo:export": "node scripts/demo-export.mjs",
     "ids": "UPDATE_IDS=1 vitest run tests/ids.test.ts",
     "retune": "RETUNE=1 vitest run tests/retune.test.ts --silent=false",
