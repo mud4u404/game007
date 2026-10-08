@@ -31,6 +31,11 @@ try {
     server = await preview({ preview: { host: '127.0.0.1', port: 4184 }, logLevel: 'warn' });
     url = new URL('demo.html', server.resolvedUrls.local[0]).href;
   }
+  // Keep the established full gameplay routes on their original presentation.
+  // focus-smoke covers the new default's drawers and three-tab navigation.
+  const gameplayUrl = new URL(url);
+  gameplayUrl.searchParams.set('layout', 'cards');
+  url = gameplayUrl.href;
   const executablePath = process.env.SMOKE_EXECUTABLE_PATH || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined);
   const channel = process.env.SMOKE_CHANNEL;
   try { browser = await chromium.launch(channel ? { channel } : executablePath ? { executablePath } : {}); }

@@ -4,9 +4,12 @@ import './designs/explore.css';
 import './designs/board.css';
 import './designs/ranger.css';
 import './designs/shell.css';
+import './designs/focus.css';
 import { renderExplore } from './designs/explore';
 import { renderBoard } from './designs/board';
 import { renderRanger } from './designs/ranger';
+import { renderFocus } from './designs/focus';
+import { smartSuggestions, travelMinutes } from './suggestions';
 import type { WorldDesignContext } from './design-context';
 import { icon } from './icons';
 import {
@@ -24,12 +27,13 @@ const SAVE_KEY = 'game007-sandbox-demo-v1';
 const THEME_KEY = 'game007-sandbox-demo-theme';
 const LAYOUT_KEY = 'game007-sandbox-demo-layout';
 const LAYOUTS = [
+  { id: 'focus', name: '留白', number: '新', note: '点人交涉，展开行动，随时动身。', detail: '默认界面' },
   { id: 'cards', name: '场景探索', number: '一', note: '人在景中，路在脚下。点眼前的人，再决定怎么做。', detail: '山水长卷 · 人物定位与去路同屏' },
   { id: 'scroll', name: '事务总览', number: '二', note: '接着上回的事。线索、待办与下一步放在一起。', detail: '市井告示 · 从未完事务直接行动' },
   { id: 'compact', name: '情境操作', number: '三', note: '先看眼下处境，再选适合此刻的行动。', detail: '掌上游侠 · 状态建议与拇指快捷操作' },
 ] as const;
 type Layout = typeof LAYOUTS[number]['id'];
-let layout: Layout = 'cards';
+let layout: Layout = 'focus';
 try {
   const choice = new URLSearchParams(location.search).get('layout') ?? localStorage.getItem(LAYOUT_KEY);
   if (LAYOUTS.some(l => l.id === choice)) layout = choice as Layout;
@@ -80,7 +84,7 @@ let selected = '';
 let message = loaded ? '' : '初到青溪，渡口还没人认得你。先挣几文盘缠，或去看看岸边那场争执，都由你。';
 let changes: string[] = [];
 let responseSection: WorldDesignContext['responseSection'] = 'scene';
-let modal: 'journal' | 'origins' | 'about' | 'layouts' | null = null;
+let modal: 'journal' | 'origins' | 'about' | 'layouts' | 'menu' | 'status' | 'person-actions' | 'focus-actions' | null = null;
 let confirmOrigin: OriginId | null = null;
 let activeFight: { request: BattleRequest; battle: DemoBattle } | null = null;
 let fightPaused = false;
@@ -88,6 +92,7 @@ let tellSeconds = 0;
 let hasResponded = false;
 let lastBattleTick = 0;
 let modalReturnFocus: string | null = null;
+let lastTrigger: string | null = null;
 let storageFailed = false;
 try { document.documentElement.dataset.theme = localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light'; } catch { /* private browsing */ }
 
@@ -105,15 +110,20 @@ const bar = (label: string, now: number, max: number, cls: string) => `<div clas
 
 function originCard(o: typeof ORIGINS[number], arrival = false): string {
   const on = arrival ? o.id === chosenOrigin : o.id === state.origin;
+  if (layout === 'focus') {
+    const perks: Record<OriginId, string> = { porter: '气力好，搬货挣得多', courier: '脚程快，赶路更省时', scholar: '识文断字，查账更在行', apprentice: '体魄与根骨均衡，尚未入门' };
+    return `<button class="origin-card ${on ? 'chosen' : ''}" data-ui="${arrival ? 'choose-origin' : 'origin'}:${o.id}" aria-pressed="${on}"><div class="section-title"><h3>${esc(o.name)}</h3>${on ? icon('check') : icon('arrow')}</div><small>${perks[o.id]}</small>${on ? `<p>${esc(o.description)}</p>` : ''}${!arrival && confirmOrigin === o.id ? '<strong class="confirm-note">再点一次，确认重新开始</strong>' : ''}</button>`;
+  }
   return `<button class="origin-card ${on ? 'chosen' : ''}" data-ui="${arrival ? 'choose-origin' : 'origin'}:${o.id}" aria-pressed="${on}"><div class="section-title"><h3>${esc(o.name)}</h3>${pill(arrival && on ? '选此出身' : o.title)}</div><p>${esc(o.description)}</p><div class="origin-attrs">${ATTRS.map(a => `<span>${a.name}<b>${o.attrs[a.id]}</b></span>`).join('')}</div><small>${esc(o.perk)}</small>${!arrival && confirmOrigin === o.id ? '<strong class="confirm-note">再点一次，确认重新开始</strong>' : ''}</button>`;
 }
 
 function arrivalView(): string {
+  if (layout === 'focus') return `<main class="arrival-screen focus-arrival"><div class="arrival-scroll"><header class="focus-arrival-top"><span>青溪</span><button class="icon-button" data-ui="menu" aria-label="设置">•••</button></header><div class="focus-arrival-heading"><h1>江湖，<br>从你开始。</h1><p>二十八文，还不会武功。选一个来处。</p></div><div class="arrival-origins" aria-label="选择出身">${ORIGINS.map(o => originCard(o, true)).join('')}</div></div><div class="arrival-footer"><button class="button wide" data-ui="begin">走进青溪 ${icon('arrow')}</button></div></main><div id="modal-root"></div><div id="fight-root"></div><div class="sr-only" aria-live="polite" id="announcer"></div>`;
   return `<main class="arrival-screen"><div class="arrival-scroll"><div class="arrival-scene"><img src="./demo/harbor.webp" alt="微雨初晴的青溪渡口"><button class="button secondary" data-ui="layouts">${icon('map')} 挑一种界面</button></div><div class="arrival-heading"><span class="eyebrow">江湖夜雨 · 青溪试游</span><h1>还不会武功的你，<br>先从哪里来？</h1><p>身上二十八文，一包行李。<br>先谋一口饭，或去认识一个教你握剑的人。</p><span class="pill green">四种出身 · 都从未入门开始</span></div><div class="arrival-origins" aria-label="选择出身">${ORIGINS.map(o => originCard(o, true)).join('')}</div></div><div class="arrival-footer"><button class="button wide" data-ui="begin">以${esc(ORIGINS.find(o => o.id === chosenOrigin)!.name)}起步 ${icon('arrow')}</button><p>出身决定起点，往后的路由你自己走。</p></div></main><div id="modal-root"></div><div id="fight-root"></div><div class="sr-only" aria-live="polite" id="announcer"></div>`;
 }
 
 function layoutPicker(): string {
-  return `<p class="modal-intro">比较三种操作方式：从场景找人、接着未完的事，或按眼下处境行动。切换保留同一份进度。</p><div class="layout-picker">${LAYOUTS.map(l => `<button class="layout-option ${layout === l.id ? 'chosen' : ''}" data-ui="layout:${l.id}" aria-pressed="${layout === l.id}"><div class="layout-sample sample-${l.id}" aria-hidden="true"><div class="layout-sample-scene"></div><div class="layout-sample-lines"><i></i><i></i><i></i></div><div class="layout-sample-actions"><i></i><i></i><i></i></div></div><div><span class="eyebrow">方案${l.number}${layout === l.id ? ' · 正在用' : ''}</span><h3>${l.name}</h3><p>${l.note}</p><small>${l.detail}</small></div></button>`).join('')}</div><button class="button wide" data-ui="close">${started ? '回到江湖' : '继续选出身'} ${icon('arrow')}</button>`;
+  return `<div class="layout-picker">${LAYOUTS.map(l => `<button class="layout-option ${layout === l.id ? 'chosen' : ''}" data-ui="layout:${l.id}" aria-pressed="${layout === l.id}"><div class="layout-sample sample-${l.id}" aria-hidden="true"><div class="layout-sample-scene"></div><div class="layout-sample-lines"><i></i><i></i><i></i></div><div class="layout-sample-actions"><i></i><i></i><i></i></div></div><div><span class="eyebrow">${layout === l.id ? '正在用' : l.id === 'focus' ? '默认' : '旧版对比'}</span><h3>${l.name}</h3><p>${l.note}</p></div></button>`).join('')}</div>`;
 }
 
 function quickDock(): string {
@@ -121,6 +131,11 @@ function quickDock(): string {
 }
 
 function nav(cls: string): string {
+  if (layout === 'focus') {
+    const tabs = [{ id: 'world', name: '附近' }, { id: 'map', name: '行路' }, { id: 'person', name: '我' }];
+    const current = ['sword', 'bag'].includes(tab) ? 'person' : tab;
+    return `<nav class="${cls}" aria-label="主要页面">${tabs.map(t => `<button data-ui="tab:${t.id}" class="${current === t.id ? 'active' : ''}" ${current === t.id ? 'aria-current="page"' : ''}>${icon(t.id)}<span>${t.name}</span></button>`).join('')}</nav>`;
+  }
   return `<nav class="${cls}" aria-label="主要页面">${TABS.map(t => `<button data-ui="tab:${t.id}" class="${tab === t.id ? 'active' : ''}" ${tab === t.id ? 'aria-current="page"' : ''}>${icon(t.id)}<span>${t.name}</span>${cls === 'side-nav' ? '<i>›</i>' : ''}</button>`).join('')}</nav>`;
 }
 
@@ -138,7 +153,12 @@ function mapMarkup(compact = false): string {
     edges.add(key);
     return `<line x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}"/>`;
   })).join('');
-  return `<div class="town-map ${compact ? 'compact-map' : ''}" role="group" aria-label="青溪镇地图"><span class="map-water-label">青 溪</span><svg class="map-roads" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path class="river" d="M-10 80 Q 10 60 35 78 T 110 62"/>${lines}</svg>${PLACES.map(p => `<button class="map-node ${p.id === state.place ? 'here' : ''}" data-ui="travel:${p.id}" style="left:${p.x}%;top:${p.y}%" ${p.id === state.place ? 'aria-current="location"' : ''}><i></i><span>${esc(p.name)}</span></button>`).join('')}<span class="map-north">北 ↑</span></div>`;
+  return `<div class="town-map ${compact ? 'compact-map' : ''}" role="group" aria-label="青溪镇地图"><span class="map-water-label">青 溪</span><svg class="map-roads" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path class="river" d="M-10 80 Q 10 60 35 78 T 110 62"/>${lines}</svg>${PLACES.map(p => {
+    const minutes = layout === 'focus' ? travelMinutes(state, p.id) : null;
+    const preview = layout === 'focus' ? structuredClone(state) : null;
+    if (preview && minutes !== null) travel(preview, p.id);
+    return `<button class="map-node ${p.id === state.place ? 'here' : ''}" data-ui="travel:${p.id}" style="left:${p.x}%;top:${p.y}%" ${p.id === state.place ? 'aria-current="location"' : ''} ${layout === 'focus' && (state.stopped || p.id === state.place) ? 'disabled' : ''}><i></i><span>${esc(p.name)}${layout === 'focus' ? `<small>${p.id === state.place ? '你在这里' : minutes === null ? '暂不能动身' : `${minutes} 分钟${preview?.stopped ? ' · 途中盘查' : ''}`}</small>` : ''}</span></button>`;
+  }).join('')}<span class="map-north">北 ↑</span></div>`;
 }
 
 function journalEntries(limit = 6): string {
@@ -167,6 +187,10 @@ function render(): void {
   save();
   const mainScroll = document.querySelector('.play-scroll')?.scrollTop ?? 0;
   const openDetails = Array.from(root.querySelectorAll('details[open]'), el => el.getAttribute('data-section') ?? el.className);
+  if (layout === 'focus') {
+    const titles = { world: '', person: '我', sword: '武学', bag: '行囊', map: '行路' };
+    root.innerHTML = `<div class="demo-layout"><div class="play-column">${tab === 'world' ? '' : `<header class="topbar"><div><h1>${titles[tab]}</h1></div><div class="top-actions">${tab === 'sword' || tab === 'bag' ? `<button class="icon-button" data-ui="tab:person" aria-label="返回人物">${icon('back')}</button>` : ''}<button class="icon-button" data-ui="menu" aria-label="设置">•••</button></div></header>`}<main class="play-scroll" id="main-content">${tab === 'world' ? worldView() : tab === 'person' ? focusPersonView() : tab === 'sword' ? focusSkillsView() : tab === 'bag' ? bagView() : focusMapView()}${storageFailed ? `<footer class="save-note">${icon('shield')}浏览器未能保存进度，请暂勿关闭此页</footer>` : ''}</main>${nav('bottom-nav')}</div></div><div id="modal-root"></div><div id="fight-root"></div><div class="sr-only" aria-live="polite" id="announcer"></div>`;
+  } else
   root.innerHTML = `<div class="demo-layout"><aside class="brand-rail"><a class="brand" href="./index.html" aria-label="回到江湖夜雨原版"><span class="brand-mark">江<br>湖</span><div>江湖夜雨<small>一身本事，一段江湖。</small></div></a><div class="edition"><span></span> 青溪试游 · 概念试玩</div>${nav('side-nav')}<div class="rail-bottom"><span class="rail-verse">一蓑烟雨任平生</span><button class="rail-link" data-ui="origins">${icon('reset')} 换一种起步</button><a class="rail-link" href="./index.html">${icon('back')} 回到原版</a></div></aside><div class="play-column">${tab === 'world' ? '' : `<header class="topbar"><div><span class="eyebrow">江湖夜雨 <i>/</i> 青溪试游</span><h1>${{ person: '此身江湖', sword: '一身本事', bag: '随身行囊', map: '行路江南' }[tab]}</h1></div><div class="top-actions"><button class="icon-button layout-trigger" data-ui="layouts" aria-label="切换界面方案">界面</button><button class="icon-button" data-ui="journal" aria-label="江湖手记">${icon('book')}</button><button class="icon-button" data-ui="theme" aria-label="切换明暗主题">${icon(document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon')}</button></div></header>`}<main class="play-scroll" id="main-content">${tab !== 'world' ? miniStats() : ''}${tab === 'world' ? worldView() : tab === 'person' ? personView() : tab === 'sword' ? skillsView() : tab === 'bag' ? bagView() : mapView()}<footer class="save-note">${icon(storageFailed ? 'shield' : 'check')}${storageFailed ? '浏览器未能保存进度，请暂勿关闭此页' : '进度保存在本机 · 原版存档独立保留'}</footer></main>${quickDock()}${nav('bottom-nav')}</div>${sidebar()}</div><div id="modal-root"></div><div id="fight-root"></div><div class="sr-only" aria-live="polite" id="announcer"></div>`;
   const scroller = document.querySelector('.play-scroll');
   for (const el of root.querySelectorAll<HTMLDetailsElement>('details')) {
@@ -182,6 +206,7 @@ function resultCard(): string {
 }
 
 function actionCard(a: DemoAction): string {
+  if (layout === 'focus') return `<button class="action-card ${a.tone ?? ''}" data-ui="action:${esc(a.id)}" ${a.disabled ? 'disabled' : ''}><div class="action-top"><b>${esc(a.label)}</b>${icon('arrow')}</div><span class="focus-action-cost">${esc(a.cost)}</span>${a.disabled || !a.id.startsWith('talk:') ? `<p>${esc(a.disabled || a.description)}</p>` : ''}</button>`;
   return `<button class="action-card ${a.tone ?? ''}" data-ui="action:${esc(a.id)}" ${a.disabled ? 'disabled' : ''}><div class="action-top"><b>${esc(a.label)}</b><span>${esc(a.cost)}</span>${icon('arrow')}</div><p>${esc(a.disabled || a.description)}</p></button>`;
 }
 
@@ -193,7 +218,7 @@ function caseNote(): string {
 
 function worldView(): string {
   const people = npcsAt(state);
-  if (!people.some(n => n.id === selected)) {
+  if (layout !== 'focus' && !people.some(n => n.id === selected)) {
     selected = state.stopped && people.some(n => n.id === 'constable') ? 'constable' : people[0]?.id || '';
   }
   const ctx: WorldDesignContext = {
@@ -202,10 +227,45 @@ function worldView(): string {
     legacy: state.inventory.old_sword > 0 ? `<button class="world-notice" data-ui="origins">${icon('reset')}<span><b>体验新的起点</b><small>旧进度可以继续，也可以换出身，从学武前开始。</small></span>${icon('arrow')}</button>` : '',
     theme: document.documentElement.dataset.theme ?? 'light', actionCard, relation: relationText,
   };
-  return layout === 'cards' ? renderExplore(ctx) : layout === 'scroll' ? renderBoard(ctx) : renderRanger(ctx);
+  return layout === 'focus' ? renderFocus(ctx) : layout === 'cards' ? renderExplore(ctx) : layout === 'scroll' ? renderBoard(ctx) : renderRanger(ctx);
 }
 
 const relationText = (n: number) => n >= 3 ? '记着你的情' : n >= 1 ? '有些交情' : n <= -1 ? '心有芥蒂' : '素不相识';
+
+function focusStatus(): string {
+  const d = derived(state);
+  return `<div class="focus-status-bars">${bar('气血', state.hp, d.hpMax, 'hp')}${state.power ? bar('内力', state.mp, d.mpMax, 'mp') : ''}${bar('精力', state.stamina, 100, 'mp')}</div><div class="facts-grid"><div><span>盘缠</span><b>${state.silver} 文</b></div><div><span>名声</span><b>${knownAs()}</b></div>${state.heat ? `<div><span>追缉</span><b class="text-danger">${state.heat}</b></div>` : ''}</div>`;
+}
+
+function focusPersonView(): string {
+  return `<section class="panel focus-identity"><span class="eyebrow">${esc(origin().name)}</span><h2>${esc(state.name)}</h2>${focusStatus()}</section><div class="focus-person-links"><button class="panel" data-ui="tab:sword">${icon('sword')}武学 ${icon('arrow')}</button><button class="panel" data-ui="tab:bag">${icon('bag')}行囊 ${icon('arrow')}</button><button class="panel" data-ui="journal">${icon('book')}记事 ${icon('arrow')}</button><button class="panel" data-ui="menu">${icon('sun')}设置 ${icon('arrow')}</button></div><details class="panel focus-attributes"><summary>根基 ${icon('arrow')}</summary><div class="facts-grid">${ATTRS.map(a => `<div><span>${a.name} · ${a.hint}</span><b>${state.attrs[a.id]}</b></div>`).join('')}</div></details><details class="panel focus-relations"><summary>相识的人 ${icon('arrow')}</summary>${NPCS.filter(n => state.relations[n.id]).map(n => `<div class="relation-row"><b>${esc(n.name)}</b>${pill(relationText(state.relations[n.id]))}</div>`).join('') || '<p class="empty-note">尚无深交。</p>'}</details>${resultCard()}`;
+}
+
+function focusSkillsView(): string {
+  const skills = [{ key: 'sword', name: '渡水剑', level: state.sword }, { key: 'inner', name: '养息功', level: state.power }, { key: 'footwork', name: '穿巷步', level: state.footwork }] as const;
+  const empty = skills.every(s => !s.level);
+  return `${empty ? `<section class="panel first-steps"><h2>还没学过武功。</h2><p>旧武场的顾行舟愿意教。先观摩，再请教。</p>${focusTravelButton('yard')}</section>` : `<section class="panel training-summary"><h2>${state.experience}<small> 历练</small></h2></section>`}${skills.map(k => {
+    const offer = trainingOffer(state, k.key);
+    const lesson = actionsFor(state, 'swordsman').find(a => a.id === `learn-${k.key}`);
+    return `<section class="panel skill-card"><div class="section-title"><h2>${k.name}</h2>${pill(k.level ? `${k.level} / ${MAX_SKILL_LEVEL}` : '未入门')}</div>${k.level ? `<p class="training-cost">${offer.cost} 历练 · 15 精力 · ${offer.minutes} 分钟${offer.disabled ? `<br>${esc(offer.disabled)}` : ''}</p><button class="button secondary wide" data-ui="train:${k.key}" ${offer.disabled ? 'disabled' : ''}>静修</button>` : lesson ? actionCard(lesson) : `<p class="fine-print">到旧武场请教 · 免费</p>`}</section>`;
+  }).join('')}${state.sword ? `<section class="panel"><h2>剑路</h2><div class="stance-options">${(['steady', 'flowing'] as const).map(stance => `<button class="stance-card ${state.stance === stance ? 'on' : ''}" data-ui="stance:${stance}" aria-pressed="${state.stance === stance}"><b>${stance === 'steady' ? '守中' : '逐流'}</b><span>${stance === 'steady' ? '稳守，留力回锋' : '抢攻，护身稍弱'}</span></button>`).join('')}</div></section>` : ''}${resultCard()}`;
+}
+
+function focusMapView(): string {
+  return `<section class="panel focus-route-map"><div class="section-title"><h2>青溪镇</h2><span>当前位置 · ${esc(place().name)}</span></div>${mapMarkup()}<p class="fine-print">${state.stopped ? '先应对捕头的查问，才能动身。' : '点地名动身，耗时标在地名下。'}</p></section>${state.stopped ? '<button class="button wide" data-ui="focus-actions">应对查问</button>' : ''}${resultCard()}`;
+}
+
+function focusTravelButton(to: PlaceId): string {
+  const minutes = travelMinutes(state, to);
+  const preview = structuredClone(state);
+  if (minutes !== null) travel(preview, to);
+  return `<button class="button secondary wide" data-ui="travel:${to}" ${minutes === null || state.place === to ? 'disabled' : ''}>${state.place === to ? '已在' : '去'}${esc(PLACES.find(p => p.id === to)!.name)}${state.place === to ? '' : minutes === null ? ' · 先应对查问' : ` · ${minutes} 分钟${preview.stopped ? ' · 途中盘查' : ''}`} ${icon('arrow')}</button>`;
+}
+
+function focusActionList(actions: DemoAction[]): string {
+  const usable = actions.filter(a => !a.disabled), locked = actions.filter(a => a.disabled);
+  return `<div class="focus-action-list" data-section="actions">${usable.map(actionCard).join('')}${locked.length ? `<details class="focus-unavailable"><summary>尚不可做 · ${locked.length} ${icon('arrow')}</summary>${locked.map(actionCard).join('')}</details>` : ''}</div>`;
+}
 
 function personView(): string {
   const d = derived(state);
@@ -245,7 +305,7 @@ function skillsView(): string {
 
 function bagView(): string {
   const items = Object.entries(state.inventory).filter(([, n]) => n > 0);
-  return `<section class="panel money-card">${icon('coin')}<div><span>随身盘缠</span><h2>${state.silver}<small> 文</small></h2></div><p>吃一碗热面，添一包伤药。<br>身上有钱，脚下多一条路。</p></section><section class="panel"><div class="section-title"><h2>随身物件</h2><span>${items.length} 种</span></div>${items.map(([id, n]) => { const item = ITEMS[id]; return `<div class="inventory-row"><span class="item-glyph">${id.includes('medicine') ? '药' : id.includes('sword') ? '剑' : id.includes('ledger') ? '簿' : '物'}</span><div><b>${esc(item?.name ?? id)}</b><p>${esc(item?.description ?? '随身带着，或许用得上。')}</p></div><span class="item-count">×${n}</span>${id === 'medicine' ? `<button class="button secondary small" data-ui="medicine" ${state.hp >= derived(state).hpMax ? 'disabled' : ''}>${state.hp >= derived(state).hpMax ? '无伤' : '敷药'}</button>` : ''}</div>`; }).join('') || '<p class="empty-note">行囊空了。去长街看看，或先在码头挣些盘缠。</p>'}</section>${resultCard()}<div class="two-buttons"><button class="button secondary" data-ui="travel:street">去长街 ${icon('arrow')}</button><button class="button secondary" data-ui="travel:inn">投店歇脚 ${icon('arrow')}</button></div>`;
+  return `<section class="panel money-card">${icon('coin')}<div><span>随身盘缠</span><h2>${state.silver}<small> 文</small></h2></div><p>吃一碗热面，添一包伤药。<br>身上有钱，脚下多一条路。</p></section><section class="panel"><div class="section-title"><h2>随身物件</h2><span>${items.length} 种</span></div>${items.map(([id, n]) => { const item = ITEMS[id]; return `<div class="inventory-row"><span class="item-glyph">${id.includes('medicine') ? '药' : id.includes('sword') ? '剑' : id.includes('ledger') ? '簿' : '物'}</span><div><b>${esc(item?.name ?? id)}</b><p>${esc(item?.description ?? '随身带着，或许用得上。')}</p></div><span class="item-count">×${n}</span>${id === 'medicine' ? `<button class="button secondary small" data-ui="medicine" ${state.hp >= derived(state).hpMax ? 'disabled' : ''}>${state.hp >= derived(state).hpMax ? '无伤' : '敷药'}</button>` : ''}</div>`; }).join('') || '<p class="empty-note">行囊空了。去长街看看，或先在码头挣些盘缠。</p>'}</section>${resultCard()}${layout === 'focus' ? `<div class="focus-bag-routes">${focusTravelButton('street')}${focusTravelButton('inn')}</div>` : `<div class="two-buttons"><button class="button secondary" data-ui="travel:street">去长街 ${icon('arrow')}</button><button class="button secondary" data-ui="travel:inn">投店歇脚 ${icon('arrow')}</button></div>`}`;
 }
 
 function mapView(): string {
@@ -254,10 +314,29 @@ function mapView(): string {
 
 function renderModal(): void {
   const host = document.querySelector('#modal-root')!;
+  for (const el of document.querySelectorAll<HTMLElement>('.demo-layout,.arrival-screen')) el.inert = Boolean(modal || activeFight);
   if (!modal) { host.innerHTML = ''; return; }
-  const title = modal === 'journal' ? '江湖手记' : modal === 'origins' ? '换一种起步' : modal === 'layouts' ? '挑一种界面' : '青溪试游';
+  let title = modal === 'journal' ? '江湖手记' : modal === 'origins' ? '换一种起步' : modal === 'layouts' ? '挑一种界面' : '青溪试游';
   let content = '';
-  if (modal === 'layouts') {
+  if (modal === 'menu') {
+    title = '设置';
+    content = `<div class="focus-menu-grid"><button class="button secondary" data-ui="theme">${icon(document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon')}${document.documentElement.dataset.theme === 'dark' ? '浅色外观' : '深色外观'}</button><button class="button secondary" data-ui="layouts">${icon('map')}界面对比</button>${started ? `<button class="button secondary" data-ui="journal">${icon('book')}记事</button><button class="button secondary" data-ui="origins">${icon('reset')}重新开始</button>` : ''}<button class="button secondary" data-ui="about">${icon('spark')}关于试玩</button></div><p class="fine-print">${started ? storageFailed ? '进度保存失败，请暂勿关闭。' : '进度保存在本机。' : '选定出身后开始。'}</p>`;
+  } else if (modal === 'status') {
+    title = '眼下状态'; content = focusStatus();
+  } else if (modal === 'person-actions') {
+    const person = npcsAt(state).find(n => n.id === selected);
+    title = person?.name ?? '人已离开';
+    content = `${resultCard()}${person ? `<div class="focus-person-intro"><small>${esc(person.role)} · ${relationText(state.relations[person.id] || 0)}</small><p>${esc(person.description)}</p></div>${focusActionList(actionsFor(state, person.id))}` : '<p>这会儿人已经不在这里。</p>'}`;
+  } else if (modal === 'focus-actions') {
+    title = state.stopped ? '应对查问' : '做点什么';
+    const suggestion = smartSuggestions(state)[0];
+    const all = new Map(actionsFor(state).map(a => [a.id, a]));
+    for (const person of npcsAt(state)) for (const a of actionsFor(state, person.id)) if (!a.id.startsWith('talk:') && !all.has(a.id)) all.set(a.id, a);
+    // Order a useful action first; suggestions never execute or remove alternatives.
+    const first = suggestion?.ui.startsWith('action:') ? suggestion.ui.slice(7) : '';
+    const actions = [...all.values()].sort((a, b) => Number(b.id === first) - Number(a.id === first));
+    content = `${resultCard()}${focusActionList(actions)}`;
+  } else if (modal === 'layouts') {
     content = layoutPicker();
   } else if (modal === 'journal') {
     content = `<div class="journal-intro"><span class="eyebrow">你的脚步，留下的回声</span><p>谁记着你的好，谁见过你出手，谁还在等你。一件件，都在这里。</p></div><div class="case-record"><span>${pill(state.caseStatus === 'released' ? '已有下文' : '尚未了结', state.caseStatus === 'released' ? 'green' : 'amber')}</span><h3>船工的旧账</h3><p>${state.caseStatus === 'released' ? esc(CASE_METHODS[state.caseMethod ?? ''] || '许青已经离开押送队伍。') : state.caseStatus === 'held' ? '许青拿走了东家的账本，说上面记着船工被拖欠的工钱。午时前人还在渡口；长街的货单、茶棚的人证，也许能说清这场争执。' : '午时已过，许青被押到镇公所。去问问值守的捕头，事情仍有余地。'}</p><div class="change-tags">${state.flags.ledger ? pill('看过账目', 'green') : ''}${state.flags.witness ? pill('问过船客', 'green') : ''}</div></div><ol class="journal-list full-journal">${journalEntries(80)}</ol>`;
@@ -266,11 +345,13 @@ function renderModal(): void {
   } else {
     content = `<div class="about-illustration"><img src="./demo/harbor.webp" alt="青溪渡口"></div><p class="modal-intro">从一个无名小人物开始，在一座小镇里自由走动、谋生、练武，也试试出手的分量。</p><div class="about-points"><p><b>根基有用。</b>身板影响劳作，悟性帮助查账，身法给你另一条脱身的路。</p><p><b>江湖会动。</b>赶路、休息、练功都会花时间。押送会继续，事情也有后来。</p><p><b>行动有回声。</b>救人、拿走别人的东西、与人切磋，影响各自的人情与官府的留意。</p></div><p class="fine-print">这是玩法概念演示，范围为青溪镇与一桩风波，成长尺度用于短时试玩。离线暂停；演示进度单独保存在这台浏览器，不读取原版存档。</p><button class="button wide" data-ui="close">入这段江湖 ${icon('arrow')}</button>`;
   }
-  host.innerHTML = `<div class="modal-scrim" data-ui="backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><header><h2 id="modal-title">${title}</h2><button class="icon-button" data-ui="close" aria-label="关闭">${icon('close')}</button></header><div class="modal-body">${content}</div></section></div>`;
+  const focused = host.contains(document.activeElement) ? (document.activeElement as HTMLElement)?.dataset.ui : null;
+  host.innerHTML = `<div class="modal-scrim" data-ui="backdrop"><section class="modal ${layout === 'focus' ? 'focus-sheet' : ''}" role="dialog" aria-modal="true" aria-labelledby="modal-title"><header><h2 id="modal-title">${title}</h2><button class="icon-button" data-ui="close" aria-label="关闭">${icon('close')}</button></header><div class="modal-body">${content}</div></section></div>`;
+  (Array.from(host.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')).find(el => el.dataset.ui === focused) ?? host.querySelector<HTMLButtonElement>('[data-ui="close"]'))?.focus({ preventScroll: true });
 }
 
 function openModal(value: typeof modal): void {
-  modalReturnFocus = (document.activeElement as HTMLElement)?.dataset.ui ?? null;
+  if (!modal) modalReturnFocus = lastTrigger ?? (document.activeElement as HTMLElement)?.dataset.ui ?? null;
   modal = value;
   confirmOrigin = null;
   renderModal();
@@ -281,7 +362,8 @@ function closeModal(): void {
   modal = null;
   confirmOrigin = null;
   renderModal();
-  if (modalReturnFocus) Array.from(document.querySelectorAll<HTMLButtonElement>('[data-ui]')).find(el => el.dataset.ui === modalReturnFocus)?.focus();
+  const target = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-ui]')).find(el => el.dataset.ui === modalReturnFocus);
+  (target ?? document.querySelector<HTMLButtonElement>('[data-ui="menu"]'))?.focus({ preventScroll: true });
 }
 
 function announce(text: string): void {
@@ -295,10 +377,11 @@ function outcome(result: ActionResult): void {
   if (result.battle) beginFight(result.battle);
   render();
   announce(result.text);
-  if (!result.battle) document.querySelector('.reply-card')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  if (!result.battle) (document.querySelector('.modal .reply-card') ?? document.querySelector('.reply-card'))?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 function beginFight(request: BattleRequest): void {
+  modal = null;
   const d = derived(state);
   activeFight = { request, battle: createBattle({ name: state.name, hp: state.hp, mp: state.mp, hpMax: d.hpMax, mpMax: d.mpMax, attrs: state.attrs, power: state.power, sword: state.sword, footwork: state.footwork, stance: state.stance }, request) };
   tellSeconds = 0;
@@ -325,6 +408,7 @@ root.addEventListener('click', e => {
   const button = (e.target as HTMLElement).closest<HTMLElement>('[data-ui]');
   if (!button || (button instanceof HTMLButtonElement && button.disabled)) return;
   const [cmd, val] = button.dataset.ui!.split(':');
+  if (!button.closest('.modal')) lastTrigger = button.dataset.ui ?? null;
   if (activeFight && !['fight', 'respond'].includes(cmd)) return;
   if (cmd === 'choose-origin' && !started) {
     if (ORIGINS.some(o => o.id === val)) chosenOrigin = val as OriginId;
@@ -340,11 +424,12 @@ root.addEventListener('click', e => {
     try { const url = new URL(location.href); url.searchParams.set('layout', layout); history.replaceState(null, '', url); } catch { /* file previews may restrict history */ }
     modal = null; render();
     document.querySelector('.play-scroll')?.scrollTo(0, 0);
-    document.querySelector<HTMLButtonElement>('[data-ui="layouts"]')?.focus({ preventScroll: true });
+    (document.querySelector<HTMLButtonElement>('[data-ui="layouts"]') ?? document.querySelector<HTMLButtonElement>('[data-ui="menu"]'))?.focus({ preventScroll: true });
   } else if (cmd === 'quick') {
     document.querySelector(`[data-section="${val}"]`)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-  } else if (cmd === 'tab') { tab = val as Tab; message = ''; changes = []; render(); document.querySelector('.play-scroll')?.scrollTo(0, 0); }
+  } else if (cmd === 'tab') { tab = val as Tab; modal = null; message = ''; changes = []; render(); document.querySelector('.play-scroll')?.scrollTo(0, 0); }
   else if (cmd === 'select') {
+    if (layout === 'focus') { selected = val; message = ''; changes = []; openModal('person-actions'); return; }
     selected = val; message = ''; render();
     document.querySelector('[data-section="actions"] button:not([disabled])')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
@@ -354,7 +439,7 @@ root.addEventListener('click', e => {
       : button.closest('[data-section="scene"]') ? 'scene' : 'people';
     outcome(act(state, button.dataset.ui!.slice(7)));
   }
-  else if (cmd === 'travel') { tab = 'world'; selected = ''; responseSection = 'scene'; outcome(travel(state, val as PlaceId)); document.querySelector('.play-scroll')?.scrollTo(0, 0); }
+  else if (cmd === 'travel') { tab = 'world'; modal = null; selected = ''; responseSection = 'scene'; outcome(travel(state, val as PlaceId)); document.querySelector('.play-scroll')?.scrollTo(0, 0); }
   else if (cmd === 'dismiss') { message = ''; render(); }
   else if (cmd === 'train') outcome(train(state, val as 'inner' | 'sword' | 'footwork'));
   else if (cmd === 'stance' && state.sword > 0) { setStance(state, val as 'steady' | 'flowing'); message = `你收剑定了定神，接下来走${val === 'steady' ? '稳守回锋' : '抢步争先'}的路数。`; changes = []; render(); }
@@ -364,7 +449,7 @@ root.addEventListener('click', e => {
     document.documentElement.dataset.theme = theme;
     try { localStorage.setItem(THEME_KEY, theme); } catch { /* theme still works */ }
     render();
-  } else if (cmd === 'journal' || cmd === 'origins' || cmd === 'about' || cmd === 'layouts') openModal(cmd);
+  } else if (cmd === 'journal' || cmd === 'origins' || cmd === 'about' || cmd === 'layouts' || cmd === 'menu' || cmd === 'status' || cmd === 'focus-actions') openModal(cmd);
   else if (cmd === 'close' || (cmd === 'backdrop' && e.target === button)) closeModal();
   else if (cmd === 'origin') {
     if (confirmOrigin !== val) { confirmOrigin = val as OriginId; renderModal(); return; }
@@ -396,7 +481,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && modal) { closeModal(); return; }
   const dialog = document.querySelector<HTMLElement>('.modal, .battle');
   if (e.key !== 'Tab' || !dialog) return;
-  const focusable = Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input, [tabindex="0"]'));
+  const focusable = Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]), summary, a[href], input, [tabindex="0"]')).filter(el => el.getClientRects().length > 0);
   const first = focusable[0], last = focusable[focusable.length - 1];
   if (!first) return;
   if (e.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) { e.preventDefault(); last.focus(); }

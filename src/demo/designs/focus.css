@@ -1,0 +1,262 @@
+/* One quiet handset view; all optional detail lives behind a deliberate tap. */
+html[data-layout=focus] {
+  --paper: #f4f6f9;
+  --panel: #fff;
+  --ink: #202631;
+  --muted: #687384;
+  --line: #e1e5ec;
+  --soft: #f0f3f8;
+  --green: #315ee8;
+  --green-soft: #edf1ff;
+  --red: #ba3d47;
+  --red-soft: #fbedef;
+  --amber: #93641a;
+  --amber-soft: #faf2e5;
+  --blue: #315ee8;
+  --shadow: none;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --serif: var(--sans);
+  --focus-map-line: #d6dce6;
+  --focus-water: #e8eefb;
+  --focus-path: #bec9dc;
+  --focus-button-text: #fff;
+  --nav-height: 65px;
+  color-scheme: light;
+}
+html[data-layout=focus][data-theme=dark] {
+  --paper: #12161e;
+  --panel: #191e28;
+  --ink: #f1f4fa;
+  --muted: #a0adbf;
+  --line: #303846;
+  --soft: #202734;
+  --green: #97b0ff;
+  --green-soft: #252f49;
+  --red: #ff97a0;
+  --red-soft: #38272f;
+  --amber: #e9be78;
+  --amber-soft: #352f25;
+  --blue: #97b0ff;
+  --focus-map-line: #323c4e;
+  --focus-water: #1c2941;
+  --focus-path: #41516c;
+  --focus-button-text: #141e35;
+  color-scheme: dark;
+}
+html[data-layout=focus] body { background: var(--soft); letter-spacing: 0; }
+html[data-layout=focus] .demo-layout { background: var(--paper); box-shadow: 0 0 0 1px var(--line); }
+html[data-layout=focus] :is(h1,h2,h3,b,strong) { letter-spacing: 0; }
+html[data-layout=focus] .play-scroll { padding: 0 22px 22px; gap: 14px; }
+html[data-layout=focus][data-page=world] .play-scroll { padding: 0; gap: 0; }
+html[data-layout=focus][data-page=world] .play-scroll > .focus-world { flex: 1 0 auto; }
+html[data-layout=focus] .focus-world { min-height: 100%; display: flex; flex-direction: column; padding: 0 24px 16px; }
+html[data-layout=focus] .focus-top { min-height: 68px; padding-top: env(safe-area-inset-top); display: flex; align-items: center; gap: 17px; flex-shrink: 0; }
+html[data-layout=focus] .focus-top > b { font-size: 17px; font-weight: 700; }
+html[data-layout=focus] .focus-top time { display: flex; gap: 12px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+html[data-layout=focus] .focus-top time span { color: var(--ink); }
+html[data-layout=focus] .focus-top button { margin-left: auto; margin-right: -10px; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; }
+html[data-layout=focus] .focus-location { flex-shrink: 0; padding: 17px 0 20px; }
+html[data-layout=focus] .focus-location h1 { font: 700 34px/1.2 var(--sans); }
+html[data-layout=focus] .focus-location p { font-size: 13px; color: var(--muted); line-height: 1.7; margin-top: 10px; max-width: 28em; }
+html[data-layout=focus] .focus-scene-map { flex: 1 1 240px; min-height: 188px; position: relative; overflow: hidden; isolation: isolate; border-radius: 3px; }
+html[data-layout=focus] .focus-plan { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+html[data-layout=focus] .focus-plan :is(path,circle) { vector-effect: non-scaling-stroke; }
+html[data-layout=focus] .focus-water { fill: var(--focus-water); }
+html[data-layout=focus] .focus-ground { fill: none; stroke: var(--focus-map-line); stroke-width: 1.1; }
+html[data-layout=focus] .focus-structure { fill: var(--panel); stroke: var(--focus-map-line); stroke-width: 1; }
+html[data-layout=focus] .focus-shore { stroke: var(--focus-path); stroke-width: 1.1; }
+html[data-layout=focus] .focus-path { stroke: var(--focus-path); stroke-width: 1; stroke-dasharray: 3 5; }
+html[data-layout=focus] .focus-npc { position: absolute; z-index: 2; top: var(--node-y); left: var(--node-x); transform: translate(-50%,-50%); min-width: 82px; min-height: 52px; padding: 7px 11px 7px 8px; display: flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--line); border-radius: 27px; background: var(--panel); box-shadow: 0 3px 10px #101f3910; white-space: nowrap; }
+html[data-layout=focus] .focus-npc b { font-size: 14px; font-weight: 600; }
+html[data-layout=focus] .focus-npc-mark { display: grid; place-items: center; width: 25px; height: 28px; color: var(--muted); }
+html[data-layout=focus] .focus-npc-mark .icon { width: 18px; height: 18px; }
+html[data-layout=focus] .focus-npc:hover { border-color: var(--green); }
+html[data-layout=focus] .focus-npc:active { background: var(--green-soft); }
+html[data-layout=focus] .focus-you { position: absolute; z-index: 1; top: 80%; left: 54%; display: flex; align-items: center; gap: 9px; color: var(--green); transform: translate(-50%,-50%); }
+html[data-layout=focus] .focus-you > span { display: block; width: 11px; height: 11px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 7px var(--green-soft); }
+html[data-layout=focus] .focus-you b { font-size: 12px; padding: 0 3px; background: var(--paper); }
+html[data-layout=focus] .focus-empty { position: absolute; top: 40%; width: 100%; text-align: center; color: var(--muted); font-size: 13px; }
+html[data-layout=focus] .focus-resources { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; min-height: 64px; gap: 12px; padding: 8px 0 5px; width: 100%; border-radius: 5px; }
+html[data-layout=focus] .focus-resources > span { display: flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 12px; }
+html[data-layout=focus] .focus-resources small { color: var(--muted); font-size: 11px; font-weight: 400; }
+html[data-layout=focus] .focus-resources b { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+html[data-layout=focus] .focus-resources b > small { font-size: 10px; margin-left: 2px; }
+html[data-layout=focus] .focus-health-dot { width: 5px; height: 5px; background: var(--green); border-radius: 50%; }
+html[data-layout=focus] .focus-resources .is-low :is(b,small) { color: var(--red); }
+html[data-layout=focus] .focus-resources .is-low .focus-health-dot { background: var(--red); }
+html[data-layout=focus] .focus-scene-actions { display: grid; grid-template-columns: 1.35fr 1fr; gap: 11px; flex-shrink: 0; }
+html[data-layout=focus] .focus-scene-actions > button { min-height: 54px; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 15px; font-weight: 600; border-radius: 12px; }
+html[data-layout=focus] .focus-primary { background: var(--green); color: var(--focus-button-text); }
+html[data-layout=focus] .focus-secondary { background: var(--panel); border: 1px solid var(--line); }
+html[data-layout=focus] .focus-scene-actions .icon { width: 18px; height: 18px; }
+html[data-layout=focus] .focus-warning { display: flex; gap: 8px; align-items: center; flex-shrink: 0; min-height: 44px; width: 100%; font-size: 12px; color: var(--red); border-bottom: 1px solid var(--red-soft); }
+html[data-layout=focus] .focus-warning > span { flex: 1; }
+html[data-layout=focus] .focus-warning .icon { width: 16px; height: 16px; }
+html[data-layout=focus] .focus-feedback { flex-shrink: 0; max-height: 180px; overflow-y: auto; margin-top: 12px; border-radius: 10px; scrollbar-width: thin; }
+html[data-layout=focus] .focus-feedback .reply-card { padding: 12px; border: 0; }
+html[data-layout=focus] .focus-feedback .reply-card p { font-size: 13px; line-height: 1.7; }
+html[data-layout=focus] .focus-feedback .change-tags { margin-top: 7px; }
+html[data-layout=focus] .focus-feedback .pill { font-size: 11px; }
+html[data-layout=focus] .bottom-nav { min-height: 65px; padding: 5px 25px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); box-shadow: none; background: var(--paper); display: flex; gap: 30px; }
+html[data-layout=focus] .bottom-nav button { min-height: 52px; padding: 5px 12px; gap: 3px; color: var(--muted); font-size: 11px; border-radius: 9px; flex-direction: column; }
+html[data-layout=focus] .bottom-nav .icon { width: 20px; height: 20px; }
+html[data-layout=focus] .bottom-nav button.active { color: var(--green); }
+html[data-layout=focus] .bottom-nav button.active:before { display: none; }
+html[data-layout=focus] .topbar { min-height: 76px; padding: calc(13px + env(safe-area-inset-top)) 22px 13px; }
+html[data-layout=focus] .topbar h1 { font: 650 23px/1.3 var(--sans); margin: 0; }
+html[data-layout=focus] .topbar .eyebrow { display: none; }
+html[data-layout=focus] .icon-button { border: 0; background: transparent; color: var(--ink); }
+html[data-layout=focus] .panel { padding: 20px; border: 1px solid var(--line); border-radius: 13px; box-shadow: none; }
+html[data-layout=focus] .section-title h2 { font-size: 16px; }
+html[data-layout=focus] .button { background: var(--green); color: var(--focus-button-text); border-radius: 10px; border-color: var(--green); }
+html[data-layout=focus] .button.secondary { background: var(--panel); color: var(--ink); border-color: var(--line); }
+html[data-layout=focus] .pill { border-radius: 5px; font-size: 12px; }
+html[data-layout=focus] .identity-seal { border: 0; width: 48px; height: 48px; border-radius: 50%; font-size: 22px; }
+html[data-layout=focus] .identity-panel h2 { font-size: 23px; letter-spacing: 0; }
+html[data-layout=focus] .identity-panel > div { min-width: 140px; }
+html[data-layout=focus] .identity-panel p { font-size: 13px; }
+html[data-layout=focus] .attribute-value b { font-size: 25px; }
+html[data-layout=focus] .attribute-explain > p { font-size: 12px; }
+html[data-layout=focus] .focus-person-links { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+html[data-layout=focus] .focus-person-links > button { display: flex; align-items: center; gap: 11px; min-height: 72px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; font-size: 15px; font-weight: 600; }
+html[data-layout=focus] .focus-person-links .icon { color: var(--green); width: 20px; height: 20px; }
+html[data-layout=focus] .focus-person-links .icon:last-child { margin-left: auto; width: 15px; height: 15px; color: var(--muted); }
+html[data-layout=focus] .focus-identity h2 { font-size: 26px; margin: 4px 0 23px; }
+html[data-layout=focus] .focus-status-bars { display: grid; gap: 17px; margin-bottom: 24px; }
+html[data-layout=focus] .focus-status-bars .resource > div:first-child { margin-bottom: 10px; }
+html[data-layout=focus] .focus-status-bars .resource b { font-size: 13px; }
+html[data-layout=focus] .focus-status-bars .hp .track i { background: var(--red); }
+html[data-layout=focus] :is(.focus-attributes,.focus-relations) { padding-block: 0; }
+html[data-layout=focus] :is(.focus-attributes,.focus-relations) > summary { min-height: 62px; display: flex; align-items: center; justify-content: space-between; gap: 15px; cursor: pointer; font-size: 15px; font-weight: 600; list-style: none; }
+html[data-layout=focus] :is(.focus-attributes,.focus-relations) > summary::-webkit-details-marker { display: none; }
+html[data-layout=focus] :is(.focus-attributes,.focus-relations) > summary .icon { width: 16px; height: 16px; color: var(--muted); }
+html[data-layout=focus] :is(.focus-attributes,.focus-relations)[open] > summary .icon { transform: rotate(90deg); }
+html[data-layout=focus] :is(.focus-attributes,.focus-relations) > :not(summary) { margin-bottom: 20px; }
+html[data-layout=focus] .focus-relations .relation-row { justify-content: space-between; padding-block: 10px; margin-bottom: 0; }
+html[data-layout=focus] .facts-grid { gap: 19px 20px; }
+html[data-layout=focus] .facts-grid span { font-size: 12px; }
+html[data-layout=focus] .facts-grid b { font-size: 15px; }
+html[data-layout=focus] .money-card h2 { font-size: 30px; }
+html[data-layout=focus] .money-card > p { display: none; }
+html[data-layout=focus] .item-glyph { border-radius: 9px; font-size: 19px; }
+html[data-layout=focus] .skill-title h2 { letter-spacing: 0; font-size: 18px; }
+html[data-layout=focus] .stance-card > b { letter-spacing: 0; font-size: 20px; }
+html[data-layout=focus] .large-map-panel .section-title h2 { letter-spacing: 0; font-size: 24px; }
+html[data-layout=focus] .town-map { border-radius: 9px; }
+html[data-layout=focus] .map-roads line { stroke: var(--focus-path); }
+html[data-layout=focus] .map-roads .river { stroke: var(--focus-water); }
+html[data-layout=focus] .map-node span { background: var(--soft); }
+html[data-layout=focus] .map-water-label { letter-spacing: 0; }
+html[data-layout=focus] .focus-route-map { padding: 17px 13px; }
+html[data-layout=focus] .focus-route-map .section-title { padding-inline: 5px; }
+html[data-layout=focus] .focus-route-map .section-title > span { font-size: 11px; }
+html[data-layout=focus] .focus-route-map .town-map { height: min(52dvh,390px); min-height: 320px; }
+html[data-layout=focus] .focus-route-map .map-node { width: 88px; min-height: 65px; gap: 7px; }
+html[data-layout=focus] .focus-route-map .map-node:disabled { opacity: 1; }
+html[data-layout=focus] .focus-route-map .map-node span { font-size: 13px; white-space: normal; text-align: center; line-height: 1.4; padding: 2px; border-radius: 3px; }
+html[data-layout=focus] .focus-route-map .map-node small { display: block; font-size: 10px; font-weight: 400; margin-top: 5px; line-height: 1.4; color: var(--muted); }
+html[data-layout=focus] .focus-route-map .map-north { display: none; }
+html[data-layout=focus] .focus-route-map > .fine-print { padding: 15px 5px 1px; font-size: 12px; }
+html[data-layout=focus] .place-list { gap: 0; }
+html[data-layout=focus] .place-card { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; padding-inline: 0; }
+html[data-layout=focus] .place-card.current { border-color: var(--line); background: transparent; }
+html[data-layout=focus] .place-number { font-family: var(--sans); color: var(--muted); }
+html[data-layout=focus] .modal-scrim { padding: 0; align-items: flex-end; background: #0c142849; backdrop-filter: blur(3px); }
+html[data-layout=focus] .modal { max-width: var(--phone-width); max-height: min(85dvh,720px); border: 1px solid var(--line); border-bottom: 0; border-radius: 22px 22px 0 0; box-shadow: 0 -15px 60px #090f2520; }
+html[data-layout=focus] .modal > header { min-height: 77px; padding: 14px 21px 10px; border-bottom: 1px solid var(--line); }
+html[data-layout=focus] .modal > header > h2 { font: 650 21px/1.3 var(--sans); letter-spacing: 0; }
+html[data-layout=focus] .modal-body { padding: 20px 22px calc(25px + env(safe-area-inset-bottom)); }
+html[data-layout=focus] .modal-intro { font-size: 14px; line-height: 1.75; }
+html[data-layout=focus] .focus-person-intro { margin-bottom: 17px; }
+html[data-layout=focus] .focus-person-intro :is(p,small) { display: block; font-size: 13px; color: var(--muted); line-height: 1.7; }
+html[data-layout=focus] .focus-person-intro p { margin-top: 7px; }
+html[data-layout=focus] .focus-action-list { display: grid; grid-template-columns: minmax(0,1fr); gap: 0; }
+html[data-layout=focus] .focus-action-list .action-card { min-height: 68px; padding: 16px 0; background: transparent; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; box-shadow: none; }
+html[data-layout=focus] .focus-action-list .action-card:last-child { border-bottom: 0; }
+html[data-layout=focus] .focus-action-list .action-card:disabled { opacity: 1; color: var(--muted); }
+html[data-layout=focus] .focus-action-list .action-card:disabled b { color: var(--muted); }
+html[data-layout=focus] .focus-action-list .action-card:hover:not(:disabled) { background: var(--soft); }
+html[data-layout=focus] .focus-action-list .action-top { flex-wrap: wrap; column-gap: 8px; row-gap: 4px; }
+html[data-layout=focus] .focus-action-list .action-top b { font-size: 15px; }
+html[data-layout=focus] .focus-action-list .action-top > span { margin-left: auto; font-size: 12px; flex-basis: auto; }
+html[data-layout=focus] .focus-action-list .action-top > .icon { display: none; }
+html[data-layout=focus] .focus-action-list .action-card p { font-size: 12px; line-height: 1.75; margin-top: 6px; }
+html[data-layout=focus] .focus-action-cost { display: block; margin-top: 5px; font-size: 12px; line-height: 1.6; color: var(--muted); }
+html[data-layout=focus] .focus-unavailable { border-top: 1px solid var(--line); }
+html[data-layout=focus] .focus-unavailable > summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 55px; font-size: 13px; list-style: none; }
+html[data-layout=focus] .focus-unavailable > summary::-webkit-details-marker { display: none; }
+html[data-layout=focus] .focus-unavailable > summary .icon { width: 15px; height: 15px; }
+html[data-layout=focus] .focus-unavailable[open] > summary .icon { transform: rotate(90deg); }
+html[data-layout=focus] .focus-sheet .reply-card { margin-top: 15px; }
+html[data-layout=focus] .focus-sheet .reply-card p { font-size: 14px; }
+html[data-layout=focus] .focus-sheet details { font-size: 13px; color: var(--muted); }
+html[data-layout=focus] .focus-sheet summary { padding-block: 10px; cursor: pointer; min-height: 44px; }
+html[data-layout=focus] .focus-menu-grid { display: grid; gap: 0; }
+html[data-layout=focus] .focus-menu-grid > button { display: flex; align-items: center; justify-content: flex-start; gap: 13px; min-height: 59px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; padding: 10px 2px; text-align: left; font-size: 15px; }
+html[data-layout=focus] .focus-menu-grid > button:last-child { border: 0; }
+html[data-layout=focus] .focus-menu-grid .icon { color: var(--muted); }
+html[data-layout=focus] .reply-card p { font-family: var(--sans); }
+html[data-layout=focus] .case-record h3 { letter-spacing: 0; }
+html[data-layout=focus] .focus-arrival { background: var(--paper); }
+html[data-layout=focus] .focus-arrival .arrival-scroll { padding-top: env(safe-area-inset-top); }
+html[data-layout=focus] .focus-arrival-top { display: flex; align-items: center; justify-content: space-between; min-height: 64px; padding: 8px 24px; }
+html[data-layout=focus] .focus-arrival-top > span { font-size: 17px; font-weight: 700; }
+html[data-layout=focus] .focus-arrival-top > button { margin-right: -10px; letter-spacing: 2px; }
+html[data-layout=focus] .focus-arrival-heading { padding: 12px 25px 29px; }
+html[data-layout=focus] .focus-arrival-heading h1 { font: 700 31px/1.3 var(--sans); letter-spacing: -.7px; margin: 0 0 14px; }
+html[data-layout=focus] .focus-arrival-heading p { font-size: 14px; line-height: 1.85; color: var(--muted); }
+html[data-layout=focus] .focus-arrival .arrival-origins { padding: 0 22px 22px; gap: 11px; }
+html[data-layout=focus] .origin-card { border-radius: 13px; padding: 17px 18px; text-align: left; }
+html[data-layout=focus] .origin-card .section-title { margin: 0 0 5px; }
+html[data-layout=focus] .origin-card h3 { font-size: 16px; font-weight: 600; }
+html[data-layout=focus] .origin-card p { font-size: 13px; line-height: 1.7; color: var(--muted); }
+html[data-layout=focus] .origin-card.chosen { border-color: var(--green); background: var(--green-soft); }
+html[data-layout=focus] .origin-card.chosen h3 { color: var(--green); }
+html[data-layout=focus] .focus-arrival .origin-card:not(.chosen) { padding-block: 17px; }
+html[data-layout=focus] .focus-arrival .origin-card:not(.chosen) p { font-size: 13px; line-height: 1.7; -webkit-line-clamp: unset; display: block; }
+html[data-layout=focus] .focus-arrival .origin-card > small { display: block; font-size: 13px; line-height: 1.7; }
+html[data-layout=focus] .focus-arrival .origin-card.chosen > p { margin-top: 9px; }
+html[data-layout=focus] .focus-arrival .origin-card .origin-description { margin-top: 10px; border-top: 1px solid color-mix(in srgb,var(--green) 15%,transparent); padding-top: 10px; }
+html[data-layout=focus] .focus-arrival .arrival-footer { background: var(--paper); padding: 14px 22px calc(17px + env(safe-area-inset-bottom)); box-shadow: none; }
+html[data-layout=focus] .focus-arrival .arrival-footer .button { min-height: 54px; border-radius: 12px; }
+html[data-layout=focus] .focus-arrival .arrival-footer p { font-size: 11px; }
+html[data-layout=focus] .sample-focus { background: #f4f6f9; border-color: #d8dfed; padding: 12px; }
+html[data-layout=focus] .sample-focus .layout-sample-scene { height: 76px; border: 1px solid #c8d1e2; background: linear-gradient(100deg,transparent 64%,#e1e8f8 65%); border-radius: 2px; }
+html[data-layout=focus] .sample-focus .layout-sample-actions { margin-top: 11px; height: 15px; border-radius: 3px; background: #315ee8; }
+@media (max-width:359px) {
+  html[data-layout=focus] .focus-world { padding-inline: 17px; }
+  html[data-layout=focus] .focus-top { gap: 12px; }
+  html[data-layout=focus] .focus-top time { gap: 8px; }
+  html[data-layout=focus] .focus-location h1 { font-size: 30px; }
+  html[data-layout=focus] .focus-location p { font-size: 12px; }
+  html[data-layout=focus] .focus-resources { gap: 6px; }
+  html[data-layout=focus] .focus-resources > span { gap: 4px; }
+  html[data-layout=focus] .focus-health-dot { display: none; }
+  html[data-layout=focus] .focus-npc { gap: 4px; min-width: 76px; padding-inline: 7px; }
+  html[data-layout=focus] .focus-npc b { font-size: 13px; }
+  html[data-layout=focus] .focus-npc-mark { width: 21px; }
+  html[data-layout=focus] .play-scroll { padding-inline: 16px; }
+  html[data-layout=focus][data-page=world] .play-scroll { padding-inline: 0; }
+  html[data-layout=focus] .topbar { padding-inline: 17px; }
+  html[data-layout=focus] .bottom-nav { gap: 20px; padding-inline: 20px; }
+  html[data-layout=focus] .panel { padding: 17px; }
+  html[data-layout=focus] .focus-arrival-heading { padding-inline: 22px; }
+  html[data-layout=focus] .focus-arrival-heading h1 { font-size: 28px; }
+  html[data-layout=focus] .modal-body { padding-inline: 18px; }
+}
+@media (max-height:700px) {
+  html[data-layout=focus] .focus-top { min-height: 54px; }
+  html[data-layout=focus] .focus-location { padding: 7px 0 14px; }
+  html[data-layout=focus] .focus-location h1 { font-size: 29px; }
+  html[data-layout=focus] .focus-location p { margin-top: 7px; }
+  html[data-layout=focus] .focus-scene-map { flex-basis: 175px; min-height: 175px; }
+  html[data-layout=focus] .focus-resources { min-height: 52px; }
+  html[data-layout=focus] .focus-world { padding-bottom: 10px; }
+  html[data-layout=focus] .focus-scene-actions > button { min-height: 48px; }
+  html[data-layout=focus] .focus-feedback { max-height: 150px; }
+  html[data-layout=focus] .focus-arrival-heading { padding-top: 0; padding-bottom: 20px; }
+  html[data-layout=focus] .focus-arrival-heading h1 { font-size: 28px; margin-bottom: 10px; }
+  html[data-layout=focus] .focus-arrival .arrival-origins { gap: 9px; }
+  html[data-layout=focus] .focus-arrival .origin-card,
+  html[data-layout=focus] .focus-arrival .origin-card:not(.chosen) { padding-block: 13px; }
+}
