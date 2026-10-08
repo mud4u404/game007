@@ -1,5 +1,7 @@
 # 维护者交接
 
+> game007 独立副本说明：下文为来源项目的历史流程与状态参考，旧 Issue 编号、人员分工和每日任务不自动继承。当前工作以用户的 game007 任务及 [独立创作说明](isolation.md) 为准。
+
 写给新开的 Claude 会话。**先读本文件，再按需读别的文档。** 不要通读全部代码，用搜索定位到要改的地方。这样每次开工都省 token。
 
 **始终用中文和负责人沟通**，提交说明、PR、Issue、评论也用中文。这是负责人反复强调的要求，见仓库根目录的 `CLAUDE.md`。
@@ -8,7 +10,7 @@
 
 《江湖夜雨》：单机、手机竖屏、全程点按操作的中文文字武侠游戏。目标是「武侠 MUD 里的 GTA」：世界大，做什么都行。
 
-- 试玩网址：https://mud4u404.github.io/game006/ 。main 一更新，就自动部署到这里。
+- game007 暂未部署试玩站点；部署前须在本仓库启用 Pages 并设置 `ENABLE_PAGES=true`。
 - 设计文档：`docs/design.md`。第八节「规模化路线」是接下来的主线工作。
 - 剧情文档：`docs/story.md`。第二节是只给设计者看的真相。
 - 内容格式：`docs/content-guide.md`。
@@ -51,7 +53,7 @@
 ## 代码地图
 
 ```
-src/core/     状态 S、存档（键 jhyy-save-v2）、时间、工具函数
+src/core/     状态 S、存档（键 game007-save-v2）、时间、工具函数
 src/content/  types.ts 数据格式；index.ts 合并内容包（自动补回程出口，按 at 放置人物）
               skills.ts 武功与境界；packs/*.ts 内容包，按文件自动收录
 src/engine/   dsl.ts 条件与效果；world.ts 寻路、动作；formulas.ts「以己之长」成算；growth.ts 熟练度与突破
@@ -89,7 +91,7 @@ scripts/smoke.mjs  冒烟测试（npm run smoke）
   - 存档规则在 `src/core/save.ts`。改存档格式时，要把 `SAVE_VERSION` 加一、写一步迁移，并在 `tests/fixtures/saves/` 放一份旧版样本。
   - 内容 id 只增不删，由 `tests/ids.test.ts` 把关。每日审查时运行 `npm run ids`，把新 id 记进登记表。
 - **武学平衡**：规则在 `docs/wuxue.md` 第五节，由 `tests/content.test.ts` 把关。万一有不合规的武功包进了 main，运行 `npm run retune` 统一调数：只改数，不改字。调完要看一眼，确认文字和机制对得上。
-  - 云存档：`src/net/`，后台是 Supabase，设置见 `docs/cloud-setup.md`。体检和防休眠由 `.github/workflows/keepalive.yml` 每三天跑一次。
+  - game007 开发测试版已停用云存档，移除云端体检及防休眠工作流，仅使用本机存档。
 - **协作者**：Trae 质量评为「差」，有虚报和致命错误，负责人改用 zcode，分支名 `zcode/`。#21 丐帮、#22 少林由 Trae 完成。
 - **进行中**：`docs/design.md` 第八节的第 6 步「武学库」，设计卡见 `docs/wuxue.md`。
   - A 地基：武功数据化、搭配槽位、火候与修为、克制、校验。已完成。

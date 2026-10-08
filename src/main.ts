@@ -4,10 +4,7 @@ import './ui/explore';
 import './ui/fight';
 import './ui/savecard';
 import { showTitle } from './ui/story';
-import { reconcile } from './ui/account';
-import { startAutoSync } from './net/sync';
 
 buildShell();
-startAutoSync();
+// game007 为独立开发测试版本，仅使用本机存档，不启动云同步或账号处理。
 showTitle(true);
-void reconcile();

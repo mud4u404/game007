@@ -1,6 +1,6 @@
 import { REL_LEGACY } from '../src/engine/renqing';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { clearSaveSafely, exportCode, importCode, listBackups, migrate, readSave, useStore, writeSave, KEY, SAVE_VERSION, type SaveStore } from '../src/core/save';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { clearSaveSafely, exportCode, importCode, listBackups, migrate, rawBackup, readSave, replaceSave, savedAt, useStore, writeSave, KEY, SAVE_VERSION, type SaveStore } from '../src/core/save';
 import { newGame, skipToYangzhou } from '../src/core/state';
 import { huohou } from '../src/engine/formulas';
 import { skillPower, synergy } from '../src/engine/wuxue';
@@ -25,6 +25,41 @@ beforeEach(() => { mem = new MemStore(); useStore(mem); });
 afterEach(() => useStore(null));
 
 describe('存档：更新游戏不丢档', () => {
+  it('同源的 game006 存档、元数据和备份不会被读取、迁移、覆盖或清理', () => {
+    const oldSave = JSON.stringify({ ...skipToYangzhou(), name: '旧项目' });
+    const legacy = new Map([
+      ['jhyy-save-v2', oldSave],
+      ['jhyy-save-meta', JSON.stringify({ savedAt: 123, v: SAVE_VERSION })],
+      ['jhyy-save-broken-1', '{旧项目坏档'],
+      ['jhyy-bak-restart', oldSave],
+      ...['2000-01-01', '2000-01-02', '2000-01-03', '2000-01-04'].map(day => ['jhyy-bak-' + day, oldSave] as [string, string])
+    ]);
+    for (const [key, value] of legacy) mem.setItem(key, value);
+    const reads = vi.spyOn(mem, 'getItem');
+    const writes = vi.spyOn(mem, 'setItem');
+    const deletes = vi.spyOn(mem, 'removeItem');
+
+    expect(readSave()).toEqual({ state: null, broken: false });
+    expect(savedAt()).toBe(0);
+    expect(listBackups()).toEqual([]);
+    expect(rawBackup('jhyy-bak-restart')).toBeNull();
+    writeSave(newGame());
+    replaceSave(skipToYangzhou());
+    expect(readSave().state?.loc).toBe(skipToYangzhou().loc);
+    clearSaveSafely();
+    expect(readSave().state).toBeNull();
+    expect(listBackups()[0].state?.loc).toBe(skipToYangzhou().loc);
+    mem.setItem(KEY, '{新项目坏档');
+    expect(readSave().broken).toBe(true);
+    writeSave(newGame());
+
+    expect(new Map([...mem.m].filter(([key]) => legacy.has(key)))).toEqual(legacy);
+    for (const calls of [reads.mock.calls, writes.mock.calls, deletes.mock.calls]) {
+      expect(calls.length).toBeGreaterThan(0);
+      expect(calls.every(([key]) => key.startsWith('game007-'))).toBe(true);
+    }
+  });
+
   it('每一份旧版存档都能读出来，关键进度一样不少', () => {
     expect(Object.keys(FIXTURES).length).toBeGreaterThanOrEqual(3);
     for (const [file, raw] of Object.entries(FIXTURES)) {
@@ -87,10 +122,10 @@ describe('存档：更新游戏不丢档', () => {
     const r = readSave();
     expect(r).toEqual({ state: null, broken: true });
     writeSave(newGame());
-    const kept = [...mem.m.entries()].filter(([k]) => k.startsWith('jhyy-save-broken-'));
+    const kept = [...mem.m.entries()].filter(([k]) => k.startsWith('game007-save-broken-'));
     expect(kept.map(([, v]) => v)).toEqual(['{坏了']);
     readSave();
-    expect([...mem.m.keys()].filter(k => k.startsWith('jhyy-save-broken-')).length).toBe(1);
+    expect([...mem.m.keys()].filter(k => k.startsWith('game007-save-broken-')).length).toBe(1);
   });
 
   it('比游戏还新的存档也不覆盖', () => {
@@ -99,11 +134,11 @@ describe('存档：更新游戏不丢档', () => {
   });
 
   it('每天留一份备份，最多三份；清空前也留一份', () => {
-    for (const d of ['2026-10-01', '2026-10-02', '2026-10-03', '2026-10-04']) mem.setItem('jhyy-bak-' + d, JSON.stringify(newGame()));
+    for (const d of ['2026-10-01', '2026-10-02', '2026-10-03', '2026-10-04']) mem.setItem('game007-bak-' + d, JSON.stringify(newGame()));
     writeSave(skipToYangzhou());
-    const days = [...mem.m.keys()].filter(k => /^jhyy-bak-\d/.test(k)).sort();
+    const days = [...mem.m.keys()].filter(k => /^game007-bak-\d/.test(k)).sort();
     expect(days.length).toBe(3);
-    expect(days[0] > 'jhyy-bak-2026-10-02').toBe(true);
+    expect(days[0] > 'game007-bak-2026-10-02').toBe(true);
     clearSaveSafely();
     expect(mem.getItem(KEY)).toBeNull();
     expect(listBackups()[0].label).toBe('上次重来或导入之前');

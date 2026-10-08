@@ -21,7 +21,7 @@ export function fingerprint(v: unknown): string {
   return h.toString(36);
 }
 
-const SYNCED = 'jhyy-cloud-synced';
+const SYNCED = 'game007-cloud-synced';
 interface Synced { uid: string; fp: string }
 const ls = (): Storage | null => { try { return typeof localStorage === 'undefined' ? null : localStorage; } catch { return null; } };
 function synced(uid: string): string | null {

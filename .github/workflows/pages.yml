@@ -1,7 +1,8 @@
 name: 部署到 GitHub Pages
 
 # 每次 main 更新后自动部署，手机打开 Pages 地址即可试玩最新版本。
-# 第一次使用前，需要在仓库 Settings → Pages → Build and deployment → Source 选择「GitHub Actions」。
+# 第一次使用前，在本仓库 Settings → Pages 中选择「GitHub Actions」，
+# 并将仓库变量 ENABLE_PAGES 设为 true；开发测试副本默认不发布网站。
 on:
   push:
     branches: [main]
@@ -18,6 +19,7 @@ concurrency:
 
 jobs:
   build:
+    if: vars.ENABLE_PAGES == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

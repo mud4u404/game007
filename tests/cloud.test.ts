@@ -3,16 +3,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // 云存档的配置在测试里填上假的地址
 vi.mock('../src/net/config', () => ({ SUPABASE_URL: 'https://demo.supabase.co', SUPABASE_KEY: 'sb_publishable_demo', EMAIL_DOMAIN: 'players.example.net' }));
 
-const { CloudError, explain, pull, push, session, signIn, signUp, useFetch, usernameEmail } = await import('../src/net/cloud');
-const { decide, fingerprint, stableJson } = await import('../src/net/sync');
+const { CloudError, explain, pull, push, session, signIn, signOut, signUp, useFetch, usernameEmail } = await import('../src/net/cloud');
+const { decide, fingerprint, lastSyncedFp, markSynced, stableJson } = await import('../src/net/sync');
 
 class Mem { m = new Map<string, string>(); getItem(k: string) { return this.m.get(k) ?? null; } setItem(k: string, v: string) { this.m.set(k, v); } removeItem(k: string) { this.m.delete(k); } }
 
 type Call = { url: string; init: RequestInit };
 let calls: Call[] = [];
 let replies: { status: number; body: unknown }[] = [];
+let mem: Mem;
 beforeEach(() => {
-  (globalThis as { localStorage?: unknown }).localStorage = new Mem();
+  mem = new Mem();
+  (globalThis as { localStorage?: unknown }).localStorage = mem;
   calls = []; replies = [];
   useFetch((async (url: string, init: RequestInit) => {
     calls.push({ url, init });
@@ -25,6 +27,42 @@ afterEach(() => { delete (globalThis as { localStorage?: unknown }).localStorage
 const auth = { access_token: 'tok', refresh_token: 'ref', expires_in: 3600, user: { id: 'uid-1', user_metadata: { username: '孤舟' } } };
 
 describe('账号', () => {
+  it('同源的 game006 登录状态、同步指纹和历史日期不会被读取或改写', async () => {
+    const oldData = { v: 2, name: '旧项目' };
+    const legacy = new Map([
+      ['jhyy-cloud-session', JSON.stringify({ access: 'old-tok', refresh: 'old-ref', expires: Date.now() + 3_600_000, uid: 'uid-1', username: '旧项目' })],
+      ['jhyy-cloud-synced', JSON.stringify({ uid: 'uid-1', fp: fingerprint(oldData) })],
+      ['jhyy-cloud-history-day', new Date().toISOString().slice(0, 10)]
+    ]);
+    for (const [key, value] of legacy) mem.setItem(key, value);
+    const reads = vi.spyOn(mem, 'getItem');
+    const writes = vi.spyOn(mem, 'setItem');
+    const deletes = vi.spyOn(mem, 'removeItem');
+
+    expect(session()).toBeNull();
+    expect(lastSyncedFp()).toBeNull();
+    await expect(pull()).rejects.toThrow('还没登录');
+    expect(calls).toEqual([]);
+    signOut();
+
+    replies.push({ status: 200, body: auth });
+    await signIn('孤舟', 'secret1');
+    expect(lastSyncedFp()).toBeNull();
+    const newData = { v: 2, name: '孤舟' };
+    markSynced('uid-1', newData);
+    expect(lastSyncedFp()).toBe(fingerprint(newData));
+    await push(newData, 2, '新项目');
+    expect(calls.filter(c => c.url.endsWith('/rest/v1/save_history'))).toHaveLength(1);
+    signOut();
+    expect(session()).toBeNull();
+
+    expect(new Map([...mem.m].filter(([key]) => legacy.has(key)))).toEqual(legacy);
+    for (const accesses of [reads.mock.calls, writes.mock.calls, deletes.mock.calls]) {
+      expect(accesses.length).toBeGreaterThan(0);
+      expect(accesses.every(([key]) => key.startsWith('game007-'))).toBe(true);
+    }
+  });
+
   it('用户名换算成合法的内部邮箱，大小写不分，汉字也行', () => {
     expect(usernameEmail('孤舟')).toMatch(/^u[0-9a-f]+@players\.example\.net$/);
     expect(usernameEmail('LiuHan')).toBe(usernameEmail('liuhan'));

@@ -1,5 +1,7 @@
 # 项目规则（Trae 会自动读取本文件）
 
+本文件属于 game007。以 `AGENTS.md` 的「game007 独立创作约定」为先；旧任务与角色分工仅供参考，不执行来源仓库的任务。
+
 开始任何任务前，先完整阅读仓库根目录的 `AGENTS.md` 和 `docs/content-guide.md`。根本原则见 `docs/charter.md`，不能违反。
 
 负责人说「进入自动模式」时，按 `AGENTS.md` 第十节循环：运行 `node scripts/wait-for-work.mjs` 等任务，它退出后做它打印的那个任务，做完再回去等。

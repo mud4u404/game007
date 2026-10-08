@@ -11,7 +11,7 @@ export const cloudEnabled = (): boolean => !!(SUPABASE_URL && SUPABASE_KEY);
 export interface Session { access: string; refresh: string; expires: number; uid: string; username: string }
 export interface CloudSave { data: unknown; version: number; summary: string; updated: number }
 
-const SESSION_KEY = 'jhyy-cloud-session';
+const SESSION_KEY = 'game007-cloud-session';
 type Fetch = typeof fetch;
 let fetcher: Fetch = (...a) => fetch(...a);
 /** 测试用：换掉 fetch */
@@ -118,7 +118,7 @@ export async function pull(): Promise<CloudSave | null> {
   return r ? { data: r.data, version: r.version, summary: r.summary, updated: Date.parse(r.updated_at) } : null;
 }
 
-const HIST_DAY = 'jhyy-cloud-history-day';
+const HIST_DAY = 'game007-cloud-history-day';
 
 /** 推一份到云上；当天第一次推送时，顺手记一份历史 */
 export async function push(data: unknown, version: number, summary: string, keepalive = false): Promise<number> {

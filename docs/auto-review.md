@@ -1,5 +1,7 @@
 # 审查与合并规则
 
+> game007 独立副本说明：下文为来源项目的历史流程与状态参考，旧 Issue 编号、人员分工和每日任务不自动继承。当前工作以用户的 game007 任务及 [独立创作说明](isolation.md) 为准。
+
 本项目的 PR 由两道关把守，尽量把活交给机器，少花 Claude 的 token。
 
 | 关口 | 谁 | 什么时候 | 做什么 |
@@ -18,7 +20,7 @@
 
 ## 〇、准备
 
-1. 仓库 `mud4u404/game006`：
+1. 仓库 `mud4u404/game007`：
    - 运行 `git fetch origin`。
    - 运行 `npm ci`。
 2. 读 `docs/charter.md`（宪章）、`docs/decisions.md`、`AGENTS.md`、`docs/content-guide.md`、`docs/story.md` 第二节和第六节。

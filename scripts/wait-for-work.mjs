@@ -18,7 +18,12 @@ const sh = cmd => {
     return '';
   }
 };
-const repo = sh('git remote get-url origin').match(/github\.com[:/]([^/]+\/[^/.]+)/)?.[1] ?? 'mud4u404/game006';
+const repo = 'mud4u404/game007';
+const origin = sh('git remote get-url origin');
+if (!/^(?:https:\/\/github\.com\/|git@github\.com:|ssh:\/\/git@github\.com\/)mud4u404\/game007(?:\.git)?\/?$/.test(origin)) {
+  console.error('当前 origin 不是 mud4u404/game007，停止自动接任务。请先核对仓库，避免操作其他项目。');
+  process.exit(1);
+}
 let token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || sh('gh auth token');
 // 不登录时 GitHub 每小时只让查六十次，所以两分钟一次；登录了一分钟一次
 const interval = () => (token ? 60 : 120) * 1000;

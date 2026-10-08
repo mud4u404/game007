@@ -1,4 +1,6 @@
-# 云存档后台：Supabase 设置
+# 云存档后台：Supabase 设置（历史参考）
+
+game007 开发测试版已停用云存档，移除账号入口、自动同步启动以及云端体检工作流。当前不需要配置 Supabase 或任何密钥。下文仅保留为原实现的资料，不是 game007 的设置步骤；将来若明确恢复此功能，必须使用独立后台。
 
 账号和云存档用 Supabase 的免费版。玩家用「用户名 + 密码」注册，不用邮箱。游戏照常先存在本机，登录后再同步到云上。
 
@@ -6,7 +8,7 @@
 
 1. **建项目**
    - 打开 https://supabase.com/dashboard ，点 **New project**。
-   - Name 填 `jianghu-yeyu`。
+   - Name 填新项目的独立名称。
    - Database Password 点 Generate 生成一个，存到你自己的密码本里。维护者用不到它，**不要发给任何人**。
    - Region 选 **Northeast Asia (Tokyo)**，国内访问最快。
    - 方案选 **Free**，点 **Create new project**，等一两分钟。
@@ -92,5 +94,5 @@ create trigger keep_recent_history after insert on public.save_history
   - 存档后约三十秒推一次云；
   - 每天第一次推送时，顺手往 `save_history` 记一份。
   - 登录时，如果本机和云上的进度不一样，让玩家自己选留哪一份；另一份照样留作备份，不会丢。
-- **防休眠**：免费项目一周没人访问会暂停。`.github/workflows/keepalive.yml` 每三天访问一次。
+- **历史防休眠机制**：免费项目一周没人访问会暂停；game007 已移除原先的定时访问工作流。
 - **配置**：Project URL 和公开密钥写在 `src/net/config.ts`。没有填时，账号功能自动隐藏，游戏照常单机运行。

@@ -18,11 +18,12 @@ import { newGame, skipToYangzhou, type GameState } from './state';
 import { dateStr } from './time';
 
 export const SAVE_VERSION = 3;
-export const KEY = 'jhyy-save-v2';
-const META = 'jhyy-save-meta';
-const BROKEN = 'jhyy-save-broken-';
-const BAK = 'jhyy-bak-';
-const BAK_RESTART = 'jhyy-bak-restart';
+// GitHub Pages 的不同仓库共享浏览器来源；只读写本项目的键，不迁移其他项目的存档。
+export const KEY = 'game007-save-v2';
+const META = 'game007-save-meta';
+const BROKEN = 'game007-save-broken-';
+const BAK = 'game007-bak-';
+const BAK_RESTART = 'game007-bak-restart';
 const BAK_KEEP = 3;
 
 /** 和浏览器的 localStorage 一样的接口，测试时可以换成内存里的 */
@@ -210,7 +211,8 @@ export function listBackups(): { key: string; label: string; state: GameState | 
   });
 }
 
-export const rawBackup = (key: string): string | null => st()?.getItem(key) ?? null;
+export const rawBackup = (key: string): string | null =>
+  key.startsWith(BAK) || key.startsWith(BROKEN) ? st()?.getItem(key) ?? null : null;
 
 /* ---------- 存档码：换设备、清缓存前，复制一串字带走 ---------- */
 
