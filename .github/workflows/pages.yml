@@ -1,11 +1,10 @@
-name: 部署到 GitHub Pages
+name: 发布云端试玩
 
-# 每次 main 更新后自动部署，手机打开 Pages 地址即可试玩最新版本。
-# 第一次使用前，在本仓库 Settings → Pages 中选择「GitHub Actions」，
-# 并将仓库变量 ENABLE_PAGES 设为 true；开发测试副本默认不发布网站。
+# 用户已指定：以后试玩直接通过云端网址交付。
+# 开发分支是当前 Demo 的发布源；首次在 Settings → Pages 选择 GitHub Actions。
 on:
   push:
-    branches: [main]
+    branches: [codex/jianghu-sandbox-demo]
   workflow_dispatch:
 
 permissions:
@@ -15,12 +14,13 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
-    if: vars.ENABLE_PAGES == 'true'
+    if: github.ref == 'refs/heads/codex/jianghu-sandbox-demo'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,23 +28,27 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run check
       - run: npm run build
+      - name: 准备浏览器
+        run: command -v google-chrome || npx playwright install --with-deps chromium
+      - name: 验证手机试玩与保存
+        env:
+          SMOKE_CHANNEL: chrome
+        run: node scripts/focus-smoke.mjs
+      - name: 记录发布版本
+        run: node -e 'require("node:fs").writeFileSync("dist/version.json", JSON.stringify({commit:process.env.GITHUB_SHA}))'
+      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url || steps.retry.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      # GitHub Pages 偶尔返回 500（服务端临时故障），隔一会儿自动再试一次，免得要人手动重跑
       - id: deployment
-        uses: actions/deploy-pages@v4
-        continue-on-error: true
-      - if: steps.deployment.outcome == 'failure'
-        run: sleep 90
-      - id: retry
-        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4

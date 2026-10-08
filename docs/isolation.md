@@ -14,7 +14,7 @@ game007 是公开的开发测试仓库，复制自 game006 提交 `72c77fd30fdd0
 
 - 用户直接在 game007 布置后续创作任务。来源项目的 Issue、PR、角色分工和例行审查均不自动继承。
 - 自动接任务脚本只允许 origin 为 `mud4u404/game007`，否则退出。
-- CI 针对当前仓库运行检查。Pages 默认不部署；以后需要时，在 game007 设置 Pages 为 GitHub Actions，并设置仓库变量 `ENABLE_PAGES=true`。
+- CI 针对当前仓库运行检查。用户已要求云端网址试玩，Pages 从 `codex/jianghu-sandbox-demo` 自动发布；首次需在 game007 设置 Pages 为 GitHub Actions。网站发布与云存档互不相关，存档仍只在本机。详见 [云端试玩](deployment.md)。
 - 不复用来源项目的服务、密钥、Webhook 或定时任务。
 
 ## 验证

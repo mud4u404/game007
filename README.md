@@ -13,7 +13,7 @@
 ## 试玩
 
 - **青溪试游 · 自由江湖 Demo**：运行开发服务器后打开 `/demo.html`，或从原版标题页进入。首次选择四种普通人出身之一，从零武学开始，在六处地点谋生、查事，再亲自学会第一招。默认「留白」采用现代无衬线界面：附近人物放在一屏，点人后才展开底部交互抽屉；底部导航为「附近／行路／我」。状态、记事、根基按需查看，行动仍显示成本与危险。可直接打开 `/demo.html?layout=focus`，或在「设置 → 界面对比」切换；旧三种界面保留供对比，切换共用进度且不推进时间。也可运行 `npm run demo:export` 导出包含所有界面的离线单文件。已有演示进度继续保留，存档与原版隔离。见 [试玩说明](docs/demo.md)。
-- **game007 暂未部署试玩站点**。需要部署时，在本仓库 Settings → Pages 中选择「GitHub Actions」，并设置仓库变量 `ENABLE_PAGES=true`；随后 `main` 更新会部署 game007 的站点。
+- **云端试玩**：固定入口为 [青溪试游](https://mud4u404.github.io/game007/demo.html?layout=focus)。首次需要在仓库 Settings → Pages 选择「GitHub Actions」；之后开发分支推送通过检查即自动发布，无需下载文件。部署状态与首次设置见 [云端试玩说明](docs/deployment.md)。
 - **早期单文件原型**：https://claude.ai/artifact/X6NYxuUWqFRvfd94GSHUDt ，源文件在 [prototype/](prototype/)。
 
 目前可玩的内容：
@@ -68,6 +68,6 @@ npm run demo:export # 生成可离线打开的单文件 Demo
 
 1. **独立创作**：用户直接在 game007 布置需求；不继承来源项目的任务、维护者分工或每日审查。
 2. **先验证再交付**：运行类型检查、全部测试、构建和浏览器冒烟测试；所有后续分支与 PR 只属于 game007。
-3. **自动化按需启用**：保留的 Issue 自动模式只有用户明确要求时才使用。Pages 仅在本仓库完成设置并启用 `ENABLE_PAGES` 后部署。
+3. **自动化按需启用**：保留的 Issue 自动模式只有用户明确要求时才使用。用户已要求云端试玩；Pages 从 `codex/jianghu-sandbox-demo` 自动发布，不再依赖 `ENABLE_PAGES` 变量。
 
 详见 [AGENTS.md](AGENTS.md)。

@@ -4,6 +4,8 @@
 
 ## 打开
 
+后续交付以 [云端试玩网址](https://mud4u404.github.io/game007/demo.html?layout=focus) 为主。首次启用 Pages 与自动发布说明见 [云端试玩](deployment.md)。以下命令供开发与本地排查使用。
+
 ```bash
 npm run dev -- --port 5174 --strictPort
 ```
