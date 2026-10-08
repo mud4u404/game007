@@ -1,0 +1,33 @@
+/* Independent world screens own their header and status composition. */
+html[data-page=world] .topbar { display: none; }
+html[data-page=world] .play-scroll { padding: 0 0 10px; gap: 0; }
+html[data-page=world] .play-scroll > div { flex-shrink: 0; }
+html[data-page=world] .save-note { padding-inline: 12px; }
+.layout-picker { display: grid; gap: 14px; }
+.layout-option { align-items: center; grid-template-columns: 86px minmax(0, 1fr); gap: 14px; }
+.layout-option h3 { font-size: 20px; }
+.layout-option p { font-size: 14px; line-height: 1.7; }
+.layout-option small { font-size: 12px; }
+.layout-sample { width: 86px; height: 144px; border-radius: 6px; border: 1px solid #8d8c76; padding: 8px; overflow: hidden; position: relative; }
+.sample-cards { background: #e7e1cc; }
+.sample-cards .layout-sample-scene { position: absolute; inset: 14px 0 38px; background: linear-gradient(150deg,transparent 35%,#819484 36%,#b0b99e 55%,transparent 56%),linear-gradient(25deg,#d0cfac 25%,transparent 26%); height: auto; }
+.sample-cards .layout-sample-lines { position: absolute; left: 10px; top: 45px; display: flex; gap: 12px; }
+.sample-cards .layout-sample-lines i { width: 12px; height: 22px; background: #b35538; border-radius: 50%; }
+.sample-cards .layout-sample-actions { position: absolute; bottom: 12px; inset-inline: 8px; display: flex; gap: 5px; }
+.sample-cards .layout-sample-actions i { width: 20px; height: 23px; background: #847c57; }
+.sample-scroll { background: #eee3c8; border: 2px solid #473d31; border-radius: 0; }
+.sample-scroll .layout-sample-scene { height: 28px; background: #be3427; border-bottom: 3px solid #362c20; }
+.sample-scroll .layout-sample-lines { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 8px; }
+.sample-scroll .layout-sample-lines i { height: 30px; width: auto; background: #dfccaa; border: 1px solid #493a2d; border-radius: 0; }
+.sample-scroll .layout-sample-actions { margin-top: 9px; border-block: 2px solid #b23729; }
+.sample-scroll .layout-sample-actions i { display: block; height: 6px; margin-block: 4px; background: #9e7254; }
+.sample-compact { background: #101c24; border-color: #266d75; }
+.sample-compact .layout-sample-scene { height: 23px; background: none; border: 2px solid #5dd9b9; }
+.sample-compact .layout-sample-lines { display: flex; gap: 5px; margin-top: 14px; }
+.sample-compact .layout-sample-lines i { width: 20px; height: 25px; background: #34515a; }
+.sample-compact .layout-sample-actions { margin-top: 14px; display: grid; gap: 5px; }
+.sample-compact .layout-sample-actions i { height: 10px; background: #64d2b1; border-radius: 0; }
+@media(max-width:350px) {
+  .layout-option { grid-template-columns: 70px minmax(0,1fr); gap: 10px; padding: 12px; }
+  .layout-sample { width: 70px; }
+}

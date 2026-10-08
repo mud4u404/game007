@@ -1,0 +1,155 @@
+/* An action console: readable at arm's length, with a persistent thumb dock. */
+:root[data-layout=compact] {
+  --paper: #111b20; --panel: #1b292f; --soft: #233239; --line: #35444b;
+  --ink: #f0f5f4; --muted: #afc0c4; --green: #74ecd1; --green-soft: #243e3c;
+  --amber: #e7c47e; --amber-soft: #3c3629; --red: #f5a398; --red-soft: #402e2e;
+  --blue: #8abec9; --shadow: none; color-scheme: dark;
+}
+:root[data-layout=compact][data-theme=dark] {
+  --paper: #090f13; --panel: #111d23; --soft: #19282e; --line: #293b43;
+  --ink: #e2eeec; --muted: #9aacb2; --green: #50d6bd; --green-soft: #19342f;
+  --amber: #cfb075; --amber-soft: #302b21; --red-soft: #352424;
+}
+[data-layout=compact] .demo-layout { box-shadow: 0 0 90px #0003; }
+[data-layout=compact] .play-scroll { padding: 0 0 18px; gap: 0; }
+[data-layout=compact] .play-scroll > .panel,
+[data-layout=compact] .play-scroll > .place-list { margin-inline: 14px; margin-bottom: 12px; }
+[data-layout=compact] .play-scroll > .world-notice { margin: 0 14px 12px; }
+[data-layout=compact] .ranger-view { min-width: 0; padding: 0 16px; }
+[data-layout=compact] .ranger-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 65px; padding-top: env(safe-area-inset-top); }
+[data-layout=compact] .ranger-brand { display: flex; align-items: center; gap: 9px; min-width: 0; }
+[data-layout=compact] .ranger-brand-mark { height: 32px; width: 28px; border: 1px solid var(--amber); color: var(--amber); font: 19px/1 var(--serif); display: grid; place-items: center; flex-shrink: 0; }
+[data-layout=compact] .ranger-brand > div { min-width: 0; }
+[data-layout=compact] .ranger-brand b { display: block; font-size: 16px; line-height: 1.5; letter-spacing: 1px; }
+[data-layout=compact] .ranger-brand > div > span { display: block; font-size: 11px; color: var(--muted); white-space: nowrap; }
+[data-layout=compact] .ranger-tools { display: flex; gap: 2px; }
+[data-layout=compact] .ranger-tools button { width: 44px; min-height: 50px; display: flex; flex-direction: column; gap: 1px; justify-content: center; align-items: center; color: var(--muted); }
+[data-layout=compact] .ranger-tools .icon { width: 18px; height: 18px; }
+[data-layout=compact] .ranger-tools small { font-size: 11px; }
+[data-layout=compact] .ranger-hud { display: grid; grid-template-columns: 1.2fr 1fr 1fr; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+[data-layout=compact] .ranger-hud-item { display: flex; flex-direction: column; padding: 0 14px; border-left: 1px solid var(--line); min-width: 0; }
+[data-layout=compact] .ranger-hud-item:first-child { padding-left: 0; border-left: 0; }
+[data-layout=compact] .ranger-hud-item:last-child { padding-right: 0; }
+[data-layout=compact] .ranger-hud-item > span { color: var(--muted); font-size: 12px; line-height: 1.5; }
+[data-layout=compact] .ranger-hud-item > b { display: block; color: var(--ink); font-family: var(--sans); font-size: clamp(27px, 8vw, 33px); font-weight: 700; line-height: 1.35; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+[data-layout=compact] .ranger-hud-item > b > i { font-style: normal; font-weight: 400; color: var(--muted); }
+[data-layout=compact] .ranger-hud-item > b > small { font-size: 11px; letter-spacing: 0; font-weight: 400; margin-left: 3px; color: var(--muted); }
+[data-layout=compact] .ranger-hud-item > small { font-size: 11px; color: var(--muted); line-height: 1.5; }
+[data-layout=compact] .ranger-hud-item > small .icon { width: 10px; height: 10px; }
+[data-layout=compact] .ranger-money > b { color: var(--amber); }
+[data-layout=compact] .ranger-stamina { height: 3px; background: var(--line); margin-top: 6px; max-width: 70px; }
+[data-layout=compact] .ranger-stamina i { display: block; height: 100%; background: var(--green); }
+[data-layout=compact] .ranger-health { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; font-size: 12px; color: var(--muted); }
+[data-layout=compact] .ranger-health > span { display: flex; align-items: center; gap: 5px; }
+[data-layout=compact] .ranger-health .icon { width: 14px; height: 14px; color: var(--green); }
+[data-layout=compact] .ranger-health b { color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
+[data-layout=compact] .ranger-health small { font-size: 11px; font-weight: 400; color: var(--muted); }
+[data-layout=compact] .ranger-low b, [data-layout=compact] .ranger-low .icon { color: var(--red); }
+[data-layout=compact] .ranger-low .ranger-stamina i { background: var(--red); }
+[data-layout=compact] .ranger-location { border: 1px solid var(--line); background: var(--panel); border-radius: 3px; padding: 15px 15px 0; margin: 3px 0 18px; }
+[data-layout=compact] .ranger-location-title { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+[data-layout=compact] .ranger-kicker { font-size: 11px; color: var(--green); letter-spacing: 2px; }
+[data-layout=compact] .ranger-location h2 { font-size: 26px; line-height: 1.4; letter-spacing: 2px; margin: 2px 0 9px; font-family: var(--sans); }
+[data-layout=compact] .ranger-map-button { display: flex; align-items: center; justify-content: center; gap: 5px; align-self: flex-start; font-size: 12px; color: var(--muted); padding-inline: 4px; }
+[data-layout=compact] .ranger-map-button .icon { width: 17px; height: 17px; }
+[data-layout=compact] .ranger-view .scene-prose { font: 14px/1.85 var(--sans); letter-spacing: 0; color: var(--muted); }
+[data-layout=compact] .ranger-situation { display: flex; align-items: center; gap: 8px; width: calc(100% + 30px); margin: 13px -15px 0; padding: 10px 14px; min-height: 45px; background: var(--amber-soft); color: var(--amber); font-size: 12px; line-height: 1.6; }
+[data-layout=compact] .ranger-situation > span:nth-child(2) { flex: 1; min-width: 0; }
+[data-layout=compact] .ranger-situation > .icon { width: 13px; height: 13px; }
+[data-layout=compact] .ranger-status-light { width: 5px; height: 5px; flex: 0 0 5px; background: currentColor; border-radius: 50%; }
+[data-layout=compact] .ranger-situation.urgent { color: var(--red); background: var(--red-soft); }
+[data-layout=compact] .ranger-section-label { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 10px; }
+[data-layout=compact] .ranger-section-label h2 { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; letter-spacing: .2px; }
+[data-layout=compact] .ranger-section-label > span { font-size: 11px; color: var(--muted); text-align: right; }
+[data-layout=compact] .ranger-section-label > button { font-size: 12px; color: var(--green); }
+[data-layout=compact] .ranger-section-label > button .icon { width: 13px; height: 13px; }
+[data-layout=compact] .ranger-people { margin-bottom: 12px; scroll-margin-top: 12px; }
+[data-layout=compact] .ranger-view .people-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; overflow: visible; }
+[data-layout=compact] .ranger-view .person-chip { position: relative; display: flex; flex-direction: row; align-items: center; gap: 7px; min-width: 0; min-height: 63px; padding: 10px 8px; border: 1px solid var(--line); border-radius: 3px; background: var(--panel); text-align: left; }
+[data-layout=compact] .ranger-view .person-chip .npc-avatar { display: none; }
+[data-layout=compact] .ranger-view .person-chip > span { min-width: 0; }
+[data-layout=compact] .ranger-view .person-chip b { display: block; font-size: 15px; font-weight: 500; white-space: nowrap; }
+[data-layout=compact] .ranger-view .person-chip small { display: block; font-size: 11px; line-height: 1.55; color: var(--muted); margin-top: 3px; }
+[data-layout=compact] .ranger-view .person-chip.selected { background: var(--green-soft); border-color: var(--green); color: var(--green); }
+[data-layout=compact] .ranger-view .person-chip.selected i { position: absolute; bottom: -5px; left: calc(50% - 4px); width: 8px; height: 8px; background: var(--green-soft); border-right: 1px solid var(--green); border-bottom: 1px solid var(--green); transform: rotate(45deg); }
+[data-layout=compact] .ranger-action-board { padding: 15px 13px 13px; border: 1px solid var(--line); border-top-color: var(--green); background: var(--panel); border-radius: 3px; margin: 0 0 17px; }
+[data-layout=compact] .ranger-view .person-detail { border: 0; margin: 0; padding: 0; }
+[data-layout=compact] .ranger-view .person-detail .ranger-section-label { margin-bottom: 6px; }
+[data-layout=compact] .ranger-view .person-detail h2 { color: var(--muted); font-size: 13px; font-weight: 400; }
+[data-layout=compact] .ranger-view .person-detail h2 span { font-size: 17px; font-weight: 600; color: var(--ink); }
+[data-layout=compact] .ranger-view .person-detail p { margin: 0 0 12px; font: 13px/1.8 var(--sans); color: var(--muted); }
+[data-layout=compact] .ranger-view .action-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; scroll-margin-top: 14px; }
+[data-layout=compact] .ranger-view .action-card { min-height: 80px; width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 3px; background: var(--soft); }
+[data-layout=compact] .ranger-view .action-card:not(:disabled):active { border-color: var(--green); background: var(--green-soft); }
+[data-layout=compact] .ranger-view .action-top { gap: 5px; display: grid; grid-template-columns: minmax(0, 1fr) 16px; }
+[data-layout=compact] .ranger-view .action-top b { font-size: 15px; font-weight: 600; grid-column: 1; }
+[data-layout=compact] .ranger-view .action-top > span { grid-column: 1; grid-row: 2; font-size: 12px; color: var(--green); margin: 0; }
+[data-layout=compact] .ranger-view .action-top > .icon { grid-column: 2; grid-row: 1 / 3; width: 15px; height: 15px; color: var(--muted); display: block; }
+[data-layout=compact] .ranger-view .action-card p { font-size: 13px; line-height: 1.8; color: var(--muted); margin-top: 5px; }
+[data-layout=compact] .ranger-view .action-card.accent { border-color: color-mix(in srgb, var(--green) 40%, var(--line)); }
+[data-layout=compact] .ranger-view .action-card.danger .action-top > span { color: var(--red); }
+[data-layout=compact] .ranger-view .action-card:disabled { opacity: .62; background: transparent; }
+[data-layout=compact] .ranger-view .action-card:disabled .action-top > span { color: var(--muted); }
+[data-layout=compact] .ranger-view .reply-card { margin-top: 12px; padding: 12px; background: var(--green-soft); border-radius: 3px; border: 1px solid var(--green); }
+[data-layout=compact] .ranger-view .reply-card p { font: 14px/1.9 var(--sans); }
+[data-layout=compact] .ranger-suggestions { margin: 0 0 21px; }
+[data-layout=compact] .ranger-suggestions .ranger-section-label h2 { color: var(--green); }
+[data-layout=compact] .ranger-suggestions .ranger-section-label .icon { width: 16px; height: 16px; }
+[data-layout=compact] .ranger-suggestions > div:last-child { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+[data-layout=compact] .ranger-suggestion { width: 100%; padding: 12px 13px; background: var(--green-soft); border-left: 3px solid var(--green); border-radius: 0 3px 3px 0; }
+[data-layout=compact] .ranger-suggestion > div { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+[data-layout=compact] .ranger-suggestion b { font-size: 15px; font-weight: 600; }
+[data-layout=compact] .ranger-suggestion .icon { width: 15px; height: 15px; color: var(--green); }
+[data-layout=compact] .ranger-suggestion p { font-size: 13px; line-height: 1.8; color: var(--muted); margin: 5px 0; }
+[data-layout=compact] .ranger-suggestion > small { display: block; font-size: 12px; color: var(--green); }
+[data-layout=compact] .ranger-public { margin-bottom: 21px; }
+[data-layout=compact] .ranger-public .action-card { background: var(--paper); }
+[data-layout=compact] .ranger-empty { font-size: 13px; line-height: 1.9; color: var(--muted); grid-column: 1 / -1; }
+[data-layout=compact] .ranger-roads { padding: 0; scroll-margin-top: 12px; }
+[data-layout=compact] .ranger-roads .ranger-section-label { margin-bottom: 5px; }
+[data-layout=compact] .ranger-roads .road-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; border-top: 1px solid var(--line); }
+[data-layout=compact] .ranger-roads .road-card { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; gap: 10px; min-height: 70px; padding: 12px 1px; }
+[data-layout=compact] .ranger-roads .road-card > .icon:first-child { color: var(--green); width: 17px; height: 17px; }
+[data-layout=compact] .ranger-roads .road-card > span:not(.ranger-road-time) { flex: 1; min-width: 0; }
+[data-layout=compact] .ranger-roads .road-card b { font-size: 15px; }
+[data-layout=compact] .ranger-roads .road-card small { font-size: 11px; color: var(--muted); }
+[data-layout=compact] .ranger-roads .ranger-road-time { font-size: 11px; white-space: nowrap; color: var(--green); }
+[data-layout=compact] .quick-dock { display: flex; gap: 8px; padding: 8px 14px; border-top: 1px solid var(--line); background: var(--paper); flex-shrink: 0; box-shadow: 0 -8px 22px #0002; }
+[data-layout=compact] .quick-dock button { min-height: 49px; min-width: 0; flex: 1; border-radius: 4px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-size: 14px; }
+[data-layout=compact] .quick-dock button:nth-child(2) { flex: 1.35; border-color: var(--green); background: var(--green); color: var(--paper); font-weight: 700; }
+[data-layout=compact] .quick-dock .icon { width: 17px; height: 17px; color: currentColor; }
+[data-layout=compact] .bottom-nav { background: var(--paper); min-height: calc(62px + env(safe-area-inset-bottom)); padding-top: 3px; border-top-color: var(--line); box-shadow: none; }
+[data-layout=compact] .bottom-nav button { min-height: 50px; font-size: 11px; }
+[data-layout=compact] .bottom-nav button.active { color: var(--green); }
+[data-layout=compact] .bottom-nav button.active:before { border-radius: 3px; background: var(--green-soft); }
+[data-layout=compact] .save-note { padding: 14px 16px 0; color: var(--muted); }
+[data-layout=compact] .panel { border-radius: 4px; }
+[data-layout=compact] .topbar { padding-inline: 16px; }
+[data-layout=compact] .topbar h1 { font-family: var(--sans); font-weight: 600; }
+[data-layout=compact] .identity-panel h2,
+[data-layout=compact] .training-summary h2,
+[data-layout=compact] .attribute-value b { font-family: var(--sans); }
+[data-layout=compact] .button:not(.secondary) { color: var(--paper); }
+[data-layout=compact] .modal { box-shadow: 0 22px 90px #0006; }
+[data-layout=compact] .modal-scrim { background: #020b11b3; }
+@media (max-width: 359px) {
+  [data-layout=compact] .ranger-view { padding-inline: 12px; }
+  [data-layout=compact] .ranger-brand { gap: 6px; }
+  [data-layout=compact] .ranger-brand b { font-size: 14px; }
+  [data-layout=compact] .ranger-brand-mark { width: 24px; font-size: 17px; }
+  [data-layout=compact] .ranger-brand > div > span { font-size: 10px; }
+  [data-layout=compact] .ranger-tools { gap: 0; }
+  [data-layout=compact] .ranger-hud-item { padding-inline: 11px; }
+  [data-layout=compact] .ranger-view .person-chip { padding-inline: 7px; }
+  [data-layout=compact] .ranger-view .person-chip b { font-size: 14px; }
+  [data-layout=compact] .ranger-action-board { padding-inline: 11px; }
+  [data-layout=compact] .quick-dock { padding-inline: 12px; }
+}
+@media (max-height: 700px) {
+  [data-layout=compact] .ranger-top { min-height: 63px; }
+  [data-layout=compact] .ranger-hud { padding-block: 11px; }
+  [data-layout=compact] .ranger-hud-item > b { font-size: 29px; line-height: 1.35; }
+}
+
+[data-layout=compact] .ranger-view > .reply-card { margin-bottom: 17px; margin-top: -5px; }
+[data-layout=compact] .ranger-suggestions { scroll-margin-top: 12px; }

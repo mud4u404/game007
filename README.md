@@ -12,6 +12,7 @@
 
 ## 试玩
 
+- **青溪试游 · 自由江湖 Demo**：运行开发服务器后打开 `/demo.html`，或从原版标题页进入。首次选择四种普通人出身之一，从零武学开始，在六处地点谋生、查事，再亲自学会第一招。手机竖屏提供三种操作方案：「场景探索」在山水中点人、选去路；「事务总览」从证据与未完事项继续；「情境操作」集中状态、眼下建议与拇指快捷入口。建议依据当前规则显示理由和代价，异地查访先行路、到达后再行动。三种方案切换共用进度，不推进时间。也可运行 `npm run demo:export` 导出包含三种界面的离线单文件。已有演示进度继续保留，存档与原版隔离。见 [试玩说明](docs/demo.md)。
 - **game007 暂未部署试玩站点**。需要部署时，在本仓库 Settings → Pages 中选择「GitHub Actions」，并设置仓库变量 `ENABLE_PAGES=true`；随后 `main` 更新会部署 game007 的站点。
 - **早期单文件原型**：https://claude.ai/artifact/X6NYxuUWqFRvfd94GSHUDt ，源文件在 [prototype/](prototype/)。
 
@@ -51,6 +52,9 @@ npm run dev        # 本地运行，手机和电脑在同一网络下可以直�
 npm run check      # 类型检查与全部测试（含内容校验）
 npm run build      # 打包到 dist/
 npm run smoke      # 冒烟测试：无头浏览器从标题画面一路玩到首领战
+npm run demo:smoke # 青溪试游：玩法、战斗、手机布局与存档隔离
+npm run ux:smoke   # 三种操作方案：真实触控、建议与代价、阅读和切换不耗时
+npm run demo:export # 生成可离线打开的单文件 Demo
 ```
 
 技术栈：Vite + TypeScript，不依赖任何界面框架；测试用 Vitest。

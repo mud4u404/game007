@@ -149,6 +149,7 @@ function titleButtons(saved: GameState | null, confirm?: 'new' | 'skip'): void {
        <button class="t-link" data-act="tNew:skip">跳过序章，直接去扬州</button>${titleAccountHTML()}`
     : `<button class="t-btn" data-act="tGo:new">新的江湖</button>
        <button class="t-link" data-act="tGo:skip">跳过序章，直接去扬州</button>${titleAccountHTML()}`;
+  box.insertAdjacentHTML('beforeend', '<a class="t-link" href="./demo.html">青溪试游 · 自由江湖演示</a>');
 }
 
 function hideTitle(): void {

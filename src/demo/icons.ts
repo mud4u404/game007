@@ -1,0 +1,23 @@
+const paths: Record<string, string> = {
+  world: '<path d="M3 19h18M4 16l5-9 4 6 3-4 5 7M6 4h.01"/><circle cx="17" cy="5" r="2"/>',
+  person: '<circle cx="12" cy="7" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/>',
+  sword: '<path d="M14 3h7v7L9 19l-4-4zM13 4l7 7M3 13l8 8M3 21l4-4"/>',
+  bag: '<path d="M8 3h8l-2 5 6 7c3 5-1 6-8 6s-11-1-8-6l6-7zM9 8h6M9 15h6M12 12v6"/>',
+  map: '<path d="M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2zM9 3v16M15 5v16"/>',
+  book: '<path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1zm0 0v15M6 8h3M6 12h3M15 8h3M15 12h3"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1 1M18 18l1 1M5 19l1-1M18 6l1-1"/>',
+  moon: '<path d="M20 14a8 8 0 0 1-10-10 9 9 0 1 0 10 10z"/>',
+  arrow: '<path d="M5 12h14M14 7l5 5-5 5"/>',
+  back: '<path d="M19 12H5M10 7l-5 5 5 5"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  pin: '<path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0z"/><circle cx="12" cy="10" r="2"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  coin: '<circle cx="12" cy="12" r="9"/><path d="M9 9h6v6H9z"/>',
+  leaf: '<path d="M20 3C9 1 2 9 5 16s15 1 15-13zM4 21L15 9"/>',
+  shield: '<path d="M12 3l8 3v6c0 5-8 9-8 9s-8-4-8-9V6zM8 12l3 3 5-6"/>',
+  tea: '<path d="M4 10h12v4a6 6 0 0 1-12 0zm12 1h2a3 3 0 0 1 0 6h-3M3 22h16M7 3v3M12 2v4"/>',
+  reset: '<path d="M3 10a9 9 0 1 1 1 8M3 3v7h7"/>',
+  check: '<path d="M5 12l4 4L19 6"/>',
+  spark: '<path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/>',
+};
+export const icon = (name: string, cls = ''): string => `<svg class="icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.spark}</svg>`;
