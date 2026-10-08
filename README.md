@@ -12,8 +12,8 @@
 
 ## 试玩
 
-- **青溪试游 · 自由江湖 Demo**：运行开发服务器后打开 `/demo.html`，或从原版标题页进入。首次选择四种普通人出身之一，从零武学开始，在六处地点谋生、查事，再亲自学会第一招。默认「身在江湖」用六处写实场景与八位人物肖像呈现眼前的人和事，点人后展开底部交互抽屉；底部导航为「附近／行路／我」。状态、记事、根基按需查看，行动仍显示成本与危险。可直接打开 `/demo.html?layout=focus`，或在「设置 → 界面对比」切换；旧三种界面保留供对比，切换共用进度且不推进时间。也可运行 `npm run demo:export` 导出包含所有界面的离线单文件。已有演示进度继续保留，存档与原版隔离。见 [试玩说明](docs/demo.md)。
-- **云端试玩**：固定入口为 [青溪试游](https://mud4u404.github.io/game007/demo.html?layout=focus)。Pages 已启用；开发分支推送通过检查即自动发布，无需下载文件。部署状态与首次设置见 [云端试玩说明](docs/deployment.md)。
+- **青溪试游 · 自由江湖 Demo**：[云端打开](https://mud4u404.github.io/game007/demo.html?layout=choose)。选择「场景探索／事务总览／情境操作」后，从四种普通人出身之一开始谋生、查事、学武。人物、行动、去路可直接操作；三种界面共用进度。大图配人物抽屉的电影版已撤下，旧 `layout=focus` 链接会回到当前可用方案。见 [试玩说明](docs/demo.md)。
+- **云端发布**：GitHub Pages 已启用；开发分支推送通过检查后自动发布，无需下载文件。见 [云端试玩说明](docs/deployment.md)。
 - **早期单文件原型**：https://claude.ai/artifact/X6NYxuUWqFRvfd94GSHUDt ，源文件在 [prototype/](prototype/)。
 
 目前可玩的内容：
@@ -53,7 +53,7 @@ npm run check      # 类型检查与全部测试（含内容校验）
 npm run build      # 打包到 dist/
 npm run smoke      # 冒烟测试：无头浏览器从标题画面一路玩到首领战
 npm run demo:smoke # 青溪试游：玩法、战斗、手机布局与存档隔离
-npm run focus:smoke # 身在江湖界面：五种尺寸、抽屉与焦点、低资源与状态
+npm run entry:smoke # 三方案选择、旧链接迁移、继续存档与战斗
 npm run ux:smoke   # 旧三种操作方案：真实触控、建议与代价、阅读和切换不耗时
 npm run demo:export # 生成可离线打开的单文件 Demo
 ```

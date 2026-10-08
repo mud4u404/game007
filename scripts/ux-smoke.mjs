@@ -44,7 +44,9 @@ try {
   const p = await context.newPage();
   p.on('pageerror', error => errors.push(error.message));
   await p.route(/fonts\.(googleapis|gstatic)\.com/, route => route.abort());
-  await p.goto(url);
+  const firstLayout = new URL(url);
+  firstLayout.searchParams.set('layout', 'cards');
+  await p.goto(firstLayout.href);
   const state = () => p.evaluate(key => JSON.parse(localStorage.getItem(key)), SAVE);
   const ui = value => p.locator(`[data-ui="${value}"]:visible`).first();
   const click = async value => ui(value).tap({ timeout: 8000 });

@@ -27,17 +27,20 @@ const SAVE_KEY = 'game007-sandbox-demo-v1';
 const THEME_KEY = 'game007-sandbox-demo-theme';
 const LAYOUT_KEY = 'game007-sandbox-demo-layout';
 const LAYOUTS = [
-  { id: 'focus', name: '身在江湖', number: '新', note: '走进眼前的场景，认识人，再决定做什么。', detail: '默认界面' },
   { id: 'cards', name: '场景探索', number: '一', note: '人在景中，路在脚下。点眼前的人，再决定怎么做。', detail: '山水长卷 · 人物定位与去路同屏' },
   { id: 'scroll', name: '事务总览', number: '二', note: '接着上回的事。线索、待办与下一步放在一起。', detail: '市井告示 · 从未完事务直接行动' },
   { id: 'compact', name: '情境操作', number: '三', note: '先看眼下处境，再选适合此刻的行动。', detail: '掌上游侠 · 状态建议与拇指快捷操作' },
 ] as const;
-type Layout = typeof LAYOUTS[number]['id'];
-let layout: Layout = 'focus';
-try {
-  const choice = new URLSearchParams(location.search).get('layout') ?? localStorage.getItem(LAYOUT_KEY);
-  if (LAYOUTS.some(l => l.id === choice)) layout = choice as Layout;
-} catch { /* the default layout also works without storage */ }
+type PlayableLayout = typeof LAYOUTS[number]['id'];
+// The withdrawn renderer remains archived; URLs and controls only accept the
+// three playable layouts. Old focus links resolve through the same migration.
+type Layout = PlayableLayout | 'focus';
+const isPlayableLayout = (value: string | null): value is PlayableLayout => LAYOUTS.some(l => l.id === value);
+const requestedLayout = new URLSearchParams(location.search).get('layout');
+let storedLayout: string | null = null;
+try { storedLayout = localStorage.getItem(LAYOUT_KEY); } catch { /* preferences are optional */ }
+let layout: Layout = isPlayableLayout(requestedLayout) ? requestedLayout : isPlayableLayout(storedLayout) ? storedLayout : 'cards';
+const chooseLayoutOnStart = requestedLayout === 'choose' || (!isPlayableLayout(requestedLayout) && !isPlayableLayout(storedLayout));
 document.documentElement.dataset.layout = layout;
 const root = document.querySelector<HTMLDivElement>('#demo-root')!;
 const esc = (v: unknown): string => String(v).replace(/[&<>"']/g, x => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[x]!);
@@ -125,7 +128,7 @@ function arrivalView(): string {
 }
 
 function layoutPicker(): string {
-  return `<div class="layout-picker">${LAYOUTS.map(l => `<button class="layout-option ${layout === l.id ? 'chosen' : ''}" data-ui="layout:${l.id}" aria-pressed="${layout === l.id}"><div class="layout-sample sample-${l.id}" aria-hidden="true"><div class="layout-sample-scene"></div><div class="layout-sample-lines"><i></i><i></i><i></i></div><div class="layout-sample-actions"><i></i><i></i><i></i></div></div><div><span class="eyebrow">${layout === l.id ? '正在用' : l.id === 'focus' ? '默认' : '旧版对比'}</span><h3>${l.name}</h3><p>${l.note}</p></div></button>`).join('')}</div>`;
+  return `<div class="layout-picker">${LAYOUTS.map(l => `<button class="layout-option ${layout === l.id ? 'chosen' : ''}" data-ui="layout:${l.id}" aria-pressed="${layout === l.id}"><div class="layout-sample sample-${l.id}" aria-hidden="true"><div class="layout-sample-scene"></div><div class="layout-sample-lines"><i></i><i></i><i></i></div><div class="layout-sample-actions"><i></i><i></i><i></i></div></div><div><span class="eyebrow">${layout === l.id ? '正在用' : `方案${l.number}`}</span><h3>${l.name}</h3><p>${l.note}</p></div></button>`).join('')}</div>`;
 }
 
 function quickDock(): string {
@@ -365,7 +368,7 @@ function closeModal(): void {
   confirmOrigin = null;
   renderModal();
   const target = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-ui]')).find(el => el.dataset.ui === modalReturnFocus);
-  (target ?? document.querySelector<HTMLButtonElement>('[data-ui="menu"]'))?.focus({ preventScroll: true });
+  (target ?? document.querySelector<HTMLButtonElement>('[data-ui="layouts"]') ?? document.querySelector<HTMLButtonElement>('[data-ui="menu"]'))?.focus({ preventScroll: true });
 }
 
 function announce(text: string): void {
@@ -513,3 +516,4 @@ setInterval(() => {
 
 if (state.pendingBattle) beginFight(state.pendingBattle);
 render();
+if (chooseLayoutOnStart && !activeFight) openModal('layouts');

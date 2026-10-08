@@ -32,10 +32,16 @@ jobs:
       - run: npm run build
       - name: 准备浏览器
         run: command -v google-chrome || npx playwright install --with-deps chromium
-      - name: 验证手机试玩与保存
+      - name: 验证界面选择与旧网址迁移
         env:
           SMOKE_CHANNEL: chrome
-        run: node scripts/focus-smoke.mjs
+        run: node scripts/entry-smoke.mjs
+      - name: 验证三种手机操作与玩法
+        env:
+          SMOKE_CHANNEL: chrome
+        run: |
+          node scripts/ux-smoke.mjs
+          node scripts/demo-smoke.mjs
       - name: 记录发布版本
         run: node -e 'require("node:fs").writeFileSync("dist/version.json", JSON.stringify({commit:process.env.GITHUB_SHA}))'
       - uses: actions/configure-pages@v5

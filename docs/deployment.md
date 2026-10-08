@@ -2,7 +2,7 @@
 
 用户要求后续试玩通过网址直接打开。固定入口：
 
-https://mud4u404.github.io/game007/demo.html?layout=focus
+https://mud4u404.github.io/game007/demo.html?layout=choose
 
 首次开通前该地址不可用；以 GitHub Actions 的「发布云端试玩」成功部署以及实际访问结果为准。
 
