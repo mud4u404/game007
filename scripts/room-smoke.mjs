@@ -1,5 +1,5 @@
 /**
- * 房间式 MUD 浏览器验收：选对象、做动作、看变化和离开均在同一屏。
+ * 房间式 MUD 浏览器验收：对象、行动、结果及后续去处在同一连续交互里。
  * node scripts/room-smoke.mjs [http://127.0.0.1:5174/demo.html] [截图目录]
  * 未给 URL 时测试 dist；只为边界检查注入由真实新角色复制的存档。
  */
@@ -44,16 +44,17 @@ try {
   const snap = async name => { if (shots) await p.screenshot({ path: `${shots}/${name}.png` }); };
   const reachable = async (locator, label) => {
     assert.equal(await locator.count(), 1, `${label} 应有入口`);
+    await locator.scrollIntoViewIfNeeded();
     const problem = await locator.evaluate(el => {
       const r = el.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
       const top = document.elementFromPoint(x, y);
       if (r.width < 43.9 || r.height < 43.9) return `点击区 ${Math.round(r.width)}×${Math.round(r.height)}`;
       if (r.left < -1 || r.right > innerWidth + 1) return '横向溢出';
-      if (x < 0 || x > innerWidth || y < 0 || y > innerHeight) return '首屏不可见';
+      if (x < 0 || x > innerWidth || y < 0 || y > innerHeight) return '滚动后仍不可见';
       if (!top || (top !== el && !el.contains(top))) return `被 ${top?.tagName}.${top?.className} 遮挡`;
       return null;
     });
-    assert.equal(problem, null, `${label} 应无需页面滚动直接点按`);
+    assert.equal(problem, null, `${label} 应能自然滚动到并直接点按`);
   };
   const shape = async label => {
     const bad = await p.evaluate(() => {
@@ -69,13 +70,25 @@ try {
     });
     assert.deepEqual(bad, [], `${label} 应无横向溢出，所有触控不小于 44px`);
   };
-  const frame = () => p.evaluate(() => {
-    const area = document.querySelector('.room-actions').getBoundingClientRect();
-    return { y: area.y, height: area.height, window: window.scrollY, page: document.querySelector('.play-scroll').scrollTop };
-  });
-  const stable = async (before, label) => {
-    const after = await frame();
-    for (const key of Object.keys(before)) assert.ok(Math.abs(after[key] - before[key]) < 1.1, `${label}: ${key} 从 ${before[key]} 漂移到 ${after[key]}`);
+  const continuousWorld = async label => {
+    assert.equal(await p.locator('[data-room-scroll]').count(), 1, `${label} 世界只需一个滚动区域`);
+    assert.equal(await p.locator('[data-room-scroll="world"]').count(), 1, `${label} 世界内容用自然滚动浏览`);
+    const nested = await p.locator('.room-world').evaluate(root => [...root.querySelectorAll('*')].filter(el =>
+      /auto|scroll/.test(getComputedStyle(el).overflowY) && el.scrollHeight > el.clientHeight + 1
+      && el.dataset.roomScroll !== 'world').map(el => el.className));
+    assert.deepEqual(nested, [], `${label} 对象、动作和反馈不能各自出现内部滚动`);
+    const anchored = await p.evaluate(() => {
+      const world = document.querySelector('[data-room-scroll="world"]');
+      const fixed = ['.room-header', '.room-resources', '.bottom-nav'].map(sel => document.querySelector(sel));
+      const before = fixed.map(el => ({ top: el.getBoundingClientRect().top, bottom: el.getBoundingClientRect().bottom }));
+      const savedTop = world.scrollTop;
+      world.scrollTo({ top: world.scrollHeight, behavior: 'instant' });
+      const stayed = fixed.every((el, i) => Math.abs(el.getBoundingClientRect().top - before[i].top) < 1
+        && Math.abs(el.getBoundingClientRect().bottom - before[i].bottom) < 1);
+      world.scrollTo({ top: savedTop, behavior: 'instant' });
+      return stayed;
+    });
+    assert.equal(anchored, true, `${label} 自然浏览世界时状态和底部导航保持可用`);
   };
   const select = async id => {
     const before = await state();
@@ -129,35 +142,37 @@ try {
   for (const viewport of VIEWPORTS) {
     await p.setViewportSize(viewport); await seed();
     await shape(`room ${viewport.width}×${viewport.height}`);
+    await continuousWorld(`${viewport.width}×${viewport.height}`);
     const navKeys = await p.locator('.bottom-nav [data-ui]').evaluateAll(els => els.map(el => el.dataset.ui));
     assert.deepEqual(navKeys, ['tab:world', 'tab:person', 'tab:sword', 'tab:bag', 'tab:map']);
     for (const value of ['room-select:docker', 'room-select:guard', 'room-select:xu', 'travel:street', 'travel:tea', ...navKeys]) await reachable(ui(value), `${viewport.width} ${value}`);
-    const position = await frame();
     await select('guard');
     await reachable(ui('action:talk:guard'), '人物动作');
-    const beforeDetails = await state();
-    const actionHelp = p.locator('.room-action-help > summary');
-    await actionHelp.scrollIntoViewIfNeeded();
-    await actionHelp.tap();
-    assert.deepEqual(await state(), beforeDetails, '展开行动详情与禁用原因不能花时间');
-    assert.match(await p.locator('.room-action-help').innerText(), /货单|线索|证据/, '未满足条件的行动应能查到原因');
-    await actionHelp.tap();
-    await p.locator('[data-room-scroll=actions]').evaluate(el => { el.scrollTop = 0; });
-    await stable(position, '从房间选人物');
+    assert.match(await p.locator('.room-actions').innerText(), /漕帮护卫|护卫/, '所选人物的身份处境应直接可读');
+    assert.match(await ui('action:rescue-evidence').innerText(), /货单|线索|人证/, '禁用动作应直接说明缺少哪些条件');
+    assert.doesNotMatch(await ui('action:rescue-evidence').innerText(), /条件未足/, '不能用统一的条件未足替代真正原因');
     await snap(`world-guard-${viewport.width}`);
-    await select('object-cargo');
-    await reachable(ui('action:work-cargo'), '货物的搬货动作');
-    const workPosition = await frame(), workBox = await ui('action:work-cargo').boundingBox();
+    await select('docker');
+    assert.match(await ui('action:work-cargo').innerText(), /42\s*文/, '做工前即可知道收益');
+    assert.equal(await ui('room-select:object-cargo').count(), 0, '搬货由船行领班提供，不再重复为另一个物件入口');
     for (let i = 0; i < 2; i++) {
-      const before = await state(); await tap('action:work-cargo'); const after = await state();
+      const before = await state(); await act('work-cargo'); const after = await state();
       assert.equal(after.minute - before.minute, 45); assert.equal(after.silver - before.silver, 42);
       assert.equal(before.stamina - after.stamina, 22);
-      await stable(workPosition, '连续搬货后');
-      assert.deepEqual(await ui('action:work-cargo').boundingBox(), workBox, '连续操作的按钮不能换位置');
-      await reachable(ui('action:work-cargo'), '连续搬货无需重新寻找入口');
+      assert.equal(await ui('room-select:docker').getAttribute('aria-pressed'), 'true', '连续做工保持当前对象');
+      assert.match(await p.locator('.room-latest').innerText(), /陶三/, '结果应标明来源');
+      assert.match(await p.locator('.room-latest').innerText(), /42/, '做工收益应在当前对象结果中出现');
+      assert.ok(await p.locator('.room-actions .room-latest').count(), '结果与对象及动作在同一块');
+      assert.equal(await p.locator('.room-latest').getAttribute('data-room-feedback-target'), 'docker', '做工反馈归属于陶三');
+      assert.match(await p.locator('.room-look').innerText(), /缆绳|渡口|船工|木板卸货/, '动作之后地点描述仍然存在');
+      await continuousWorld('连续搬货后');
+      await reachable(ui('action:work-cargo'), '连续搬货可继续操作');
     }
-    assert.ok(await p.locator('.room-feedback').innerText().then(text => text.includes('42')));
     await snap(`world-work-${viewport.width}`);
+    await select('guard');
+    assert.doesNotMatch(await p.locator('.room-actions').innerText(), /陶三数出铜钱|最后一包货|挣得 42/, '换成卫衡时不保留陶三的当前结果');
+    assert.equal(await p.locator('.room-latest[data-room-feedback-target="docker"]').count(), 0, '历史行动不能冒充新选中对象的即时回应');
+    await reachable(ui('action:talk:guard'), '切换对象后可直接交涉');
     const progress = await state();
     for (const tab of ['person', 'sword', 'bag', 'map', 'world']) { await tap(`tab:${tab}`); await shape(`${viewport.width} ${tab}`); }
     assert.deepEqual(await state(), progress, '浏览五个页面不能推进时间');
@@ -166,7 +181,7 @@ try {
     assert.equal((await state()).place, 'street', '没有读剧情也应能直接离开渡口');
     assert.equal((await state()).caseStatus, 'held');
   }
-  log('五种屏幕：人物、出口和五页入口直接可点；同页动作、连续搬货固定位置、无需阅读即可离开');
+  log('五种屏幕：单一自然滚动，人物身份、动作成本收益及条件可读，结果归属当前对象，五页和道路可用');
 
   await p.setViewportSize(VIEWPORTS[2]); await seed();
   await select('docker'); await act('talk:docker');
@@ -175,15 +190,21 @@ try {
   const ledgerBefore = await state(); await act('inspect-ledger');
   assert.equal((await state()).minute - ledgerBefore.minute, 35); assert.equal((await state()).flags.ledger, true);
   assert.ok(await ui('action:inspect-ledger').isDisabled(), '查过的账应显式不可重复领取');
+  assert.match(await ui('action:inspect-ledger').innerText(), /已.*核|已.*查|已完成/, '查账完成应说明已核实，不应显示模糊的条件不足');
+  assert.match(await p.locator('.room-case-progress').innerText(), /货单已核对/, '查证状态应持续可见');
+  assert.match(await p.locator('.room-case-progress').innerText(), /人证待问/, '查账后仍能理解还缺的人证');
+  assert.equal(await p.locator('.room-case-next').getAttribute('data-ui'), 'travel:tea', '查账后明确给出找人证的去处');
   await snap('ledger-found');
-  await tap('travel:tea'); await select('teaman'); await act('ask-witness');
+  await p.locator('.room-case-next').tap(); await select('teaman'); await act('ask-witness');
   assert.equal((await state()).flags.witness, true);
-  await tap('travel:dock'); await select('guard'); await act('rescue-evidence');
+  assert.match(await p.locator('.room-case-progress').innerText(), /货单已核对[\s\S]*人证已记下/, '人证取得后两份线索的进度应明确');
+  assert.equal(await p.locator('.room-case-next').getAttribute('data-ui'), 'travel:dock', '线索齐备后明确给出递交证据的去处');
+  await p.locator('.room-case-next').tap(); await select('guard'); await act('rescue-evidence');
   assert.equal((await state()).caseMethod, 'evidence'); assert.equal((await state()).caseStatus, 'released');
   assert.equal(await ui('room-select:guard').count(), 0, '人已离开不能留下过期对象入口');
   assert.equal(await ui('action:rescue-evidence').count(), 0, '目标离开后动作要失效');
   await snap('case-settled');
-  log('货物/货单对象绑定真实行动；两份线索据理放人，离开的人与动作及时更新');
+  log('货单对象绑定查账，已完成与缺条件可区分；两份线索的状态和后续去处可见，离开的人与动作及时更新');
 
   await seed(); await tap('travel:tea'); await tap('travel:yard'); await select('swordsman');
   assert.ok(await ui('action:spar').isDisabled(), '未学剑不能凭空切磋');
@@ -205,8 +226,28 @@ try {
 
   await seed({ hp: 12 }); await select('self'); const injured = await state(); await act('use-medicine');
   assert.equal((await state()).hp, injured.hp + 60); assert.equal((await state()).inventory.medicine, 0);
-  await seed({ stamina: 0, silver: 0 }); await select('self'); await act('free-rest');
+  await seed({ stamina: 0, silver: 0 });
+  assert.ok(await ui('action:work-cargo').isDisabled(), '没有精力就不能搬货');
+  assert.match(await ui('action:work-cargo').innerText(), /精力/, '做工受阻应说明精力不足');
+  const recovery = p.locator('.room-recovery [data-ui="room-select:self"]');
+  await reachable(recovery, '精力不足时可查看歇脚');
+  const exhausted = await state(); await recovery.tap();
+  assert.deepEqual(await state(), exhausted, '查看恢复方法本身不能消耗时间或自动休息');
+  assert.match(await ui('action:free-rest').innerText(), /四十|40/, '确认休息前能看见恢复的精力');
+  await act('free-rest');
   assert.equal((await state()).stamina, 40, '无钱无精力仍有免费恢复路径');
+  assert.match(await p.locator('.room-latest').innerText(), /精力\s*\+40/, '休息的收益可追溯到当前动作');
+  await p.setViewportSize(VIEWPORTS[0]); await continuousWorld('小屏休息结果');
+  const lastEffect = p.locator('.room-latest .change-tags .pill').last();
+  assert.ok(await lastEffect.count(), '休息结果必须显示实际数值变化');
+  await lastEffect.scrollIntoViewIfNeeded();
+  assert.equal(await lastEffect.evaluate(el => {
+    const r = el.getBoundingClientRect();
+    const at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return r.top >= 0 && r.bottom <= innerHeight && (at === el || el.contains(at));
+  }), true, '320px 小屏通过世界自然滚动可读完结果，不被底栏截断');
+  await snap('small-rest-result');
+  await p.setViewportSize(VIEWPORTS[2]);
   await seed({ place: 'street', stopped: true, heat: 40, hp: 1, stamina: 0, silver: 0 }, { inventory: { medicine: 0 } });
   assert.ok(await ui('travel:tea').isDisabled(), '拦查时去路不可绕过');
   await reachable(ui('action:submit-check'), '身无分文的拦查出路'); await act('submit-check');
@@ -218,12 +259,26 @@ try {
   assert.equal(await ui('action:work-cargo').count(), 0);
   await reachable(ui('travel:tea'), '天黑后仍能离开'); await snap('night-dock');
   await seed({ place: 'street', minute: 21 * 60, caseStatus: 'moved' });
-  for (const id of ['merchant', 'object-ledger', 'object-medicine', 'object-purse', 'object-work']) assert.equal(await ui(`room-select:${id}`).count(), 0, `闭店后的 ${id} 不能误导玩家`);
+  for (const id of ['merchant', 'object-ledger', 'object-purse']) assert.equal(await ui(`room-select:${id}`).count(), 0, `闭店后的 ${id} 不能误导玩家`);
   await seed({ place: 'yard', minute: 21 * 60, caseStatus: 'moved' });
   assert.equal(await ui('room-select:swordsman').count(), 0); await select('self'); await reachable(ui('action:wait'), '无人房间可等待');
   log('受伤、精力耗尽、没钱、巡街拦查和夜间目标消失均有可用出路');
 
-  await seed(); await select('object-cargo'); await act('work-cargo'); const saved = await state();
+  await seed();
+  await tap('layouts'); await tap('layout:cards');
+  await tap('select:guard'); await act('talk:guard');
+  const conversation = await state();
+  await tap('layouts'); await tap('layout:room');
+  assert.deepEqual(await state(), conversation, '换布局本身不改变刚才的交谈和时间');
+  assert.equal(await ui('room-select:guard').getAttribute('aria-pressed'), 'true', '旧布局正在交涉的人在同屏布局继续选中');
+  assert.equal(await p.locator('.room-actions .room-latest').getAttribute('data-room-feedback-target'), 'guard');
+  assert.match(await p.locator('.room-actions .room-latest').innerText(), /卫衡[\s\S]*拿出凭据/, '换布局后仍可读到卫衡的实际回应');
+  await select('docker');
+  assert.equal(await p.locator('.room-latest[data-room-feedback-target="guard"]').count(), 0, '再选陶三不能残留卫衡的当前回应');
+  assert.doesNotMatch(await p.locator('.room-actions').innerText(), /拿出凭据/, '陶三交互区不得混入卫衡交谈');
+  log('旧布局交涉后切换保留所选人物和有归属的回应，再换人物清除不相关的当前结果');
+
+  await seed(); await select('docker'); await act('work-cargo'); const saved = await state();
   for (const variant of ['cards', 'scroll', 'compact', 'room']) {
     await tap('layouts'); await tap(`layout:${variant}`);
     assert.equal(await p.locator('html').getAttribute('data-layout'), variant); assert.deepEqual(await state(), saved);

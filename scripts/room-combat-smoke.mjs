@@ -188,7 +188,7 @@ try {
 
   const { p, context } = await makePage();
   await p.goto(target()); await tap(p, 'choose-origin:porter'); await tap(p, 'begin');
-  await tap(p, 'room-select:object-cargo'); await tap(p, 'action:work-cargo');
+  await tap(p, 'room-select:docker'); await tap(p, 'action:work-cargo');
   const saved = await raw(p), progressed = await state(p);
   assert.ok(progressed.minute > 540 && progressed.silver > 28, '试招隔离样本需有真实游玩进度');
   await p.goto(target(true)); await protectedTell(p);
@@ -232,7 +232,25 @@ try {
   assert.equal((await state(p)).place, 'yard');
   assert.ok((await state(p)).hp > 1, '正式战斗疗伤结果需带回江湖');
   assert.equal(await p.locator('.demo-layout[inert]').count(), 0);
+  await ui(p, 'travel:tea').scrollIntoViewIfNeeded();
   await reach(p, ui(p, 'travel:tea'), '正式战斗退出后行路');
+
+  // A shared rescue action belongs to the person selected when it was taken,
+  // even though the opponent is somebody else and remains in the same room.
+  const learned = { ...structuredClone(progressed), hp: 170, sword: 1, footwork: 1, power: 1, mp: 90 };
+  await p.evaluate(({ SAVE, learned }) => localStorage.setItem(SAVE, JSON.stringify(learned)), { SAVE, learned });
+  await p.goto(target()); await tap(p, 'room-select:xu'); await tap(p, 'action:rescue-fight');
+  await tap(p, 'fight:flee'); await tap(p, 'fight:finish');
+  assert.equal(await ui(p, 'room-select:xu').getAttribute('aria-pressed'), 'true');
+  assert.match(await p.locator('.room-actions .room-latest[data-room-feedback-target="xu"]').innerText(), /卫衡.*交手之后/);
+  assert.equal((await state(p)).caseStatus, 'held', '败退不会凭空救出许青');
+
+  const stopped = { ...structuredClone(learned), place: 'street', stopped: true, heat: 40 };
+  await p.evaluate(({ SAVE, stopped }) => localStorage.setItem(SAVE, JSON.stringify(stopped)), { SAVE, stopped });
+  await p.goto(target()); await tap(p, 'action:arrest-fight');
+  await tap(p, 'fight:flee'); await tap(p, 'fight:finish');
+  assert.match(await p.locator('.room-latest-label').innerText(), /秦捕头/);
+  assert.doesNotMatch(await p.locator('.room-latest-label').innerText(), /卫衡/);
   await isolation(p); await context.close();
   assert.deepEqual(errors, [], '浏览器不应出现脚本错误');
   log('续战优先、低气血独立警告、正式用药/脱身/返回江湖与存档隔离通过');

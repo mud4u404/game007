@@ -12,7 +12,7 @@ import { renderExplore } from './designs/explore';
 import { renderBoard } from './designs/board';
 import { renderRanger } from './designs/ranger';
 import { renderFocus } from './designs/focus';
-import { renderRoom } from './designs/room';
+import { renderRoom, type RoomFeedback } from './designs/room';
 import { renderRoomArrival } from './designs/room-arrival';
 import { renderRoomCombat } from './designs/room-combat';
 import { chooseRoomTarget, roomTargets } from './designs/room-model';
@@ -37,7 +37,7 @@ const LAYOUTS = [
   { id: 'cards', name: '场景探索', number: '一', note: '人在景中，路在脚下。点眼前的人，再决定怎么做。', detail: '山水长卷 · 人物定位与去路同屏' },
   { id: 'scroll', name: '事务总览', number: '二', note: '接着上回的事。线索、待办与下一步放在一起。', detail: '市井告示 · 从未完事务直接行动' },
   { id: 'compact', name: '情境操作', number: '三', note: '先看眼下处境，再选适合此刻的行动。', detail: '掌上游侠 · 状态建议与拇指快捷操作' },
-  { id: 'room', name: '同屏行动', number: '新', note: '人、物、去路就在眼前。选对象，直接行动。', detail: '交互试作 · 固定操作区' },
+  { id: 'room', name: '同屏行动', number: '新', note: '看清眼前的人与事，行动和回应接在一起。', detail: '交互试作 · 对象与行动相连' },
 ] as const;
 type PlayableLayout = typeof LAYOUTS[number]['id'];
 // The withdrawn renderer remains archived; URLs and controls only accept the
@@ -95,8 +95,9 @@ let tab: Tab = 'world';
 let selected = '';
 let roomSelected = '';
 let roomWasStopped = state.stopped;
-let resetRoomActions = false;
-let resetRoomFeedback = false;
+let resetRoomWorld = false;
+// Presentation context is ephemeral. World consequences remain in the journal.
+let roomResponse: { place: PlaceId; targetId?: string; label: string } | undefined;
 let message = loaded ? '' : '初到青溪，渡口还没人认得你。先挣几文盘缠，或去看看岸边那场争执，都由你。';
 let changes: string[] = [];
 let responseSection: WorldDesignContext['responseSection'] = 'scene';
@@ -225,11 +226,9 @@ function render(): void {
   }
   if (scroller) scroller.scrollTop = mainScroll;
   if (layout === 'room') for (const el of root.querySelectorAll<HTMLElement>('[data-room-scroll]')) {
-    const reset = resetRoomActions && el.dataset.roomScroll === 'actions' || resetRoomFeedback && el.dataset.roomScroll === 'feedback';
-    el.scrollTop = reset ? 0 : roomScroll.get(el.dataset.roomScroll) ?? 0;
+    el.scrollTop = resetRoomWorld ? 0 : roomScroll.get(el.dataset.roomScroll) ?? 0;
   }
-  resetRoomActions = false;
-  resetRoomFeedback = false;
+  resetRoomWorld = false;
   renderModal();
   renderFight();
   if (roomFocus && !modal && !activeFight) Array.from(root.querySelectorAll<HTMLButtonElement>('button[data-ui]:not(:disabled)')).find(button => button.dataset.ui === roomFocus)?.focus({ preventScroll: true });
@@ -263,9 +262,10 @@ function worldView(): string {
   };
   if (layout === 'room') {
     const target = chooseRoomTarget(state, roomSelected);
-    if (target.id !== roomSelected) resetRoomActions = true;
     roomSelected = target.id;
-    return renderRoom(ctx, roomSelected);
+    const feedback: RoomFeedback | undefined = message && roomResponse?.place === state.place
+      ? { targetId: roomResponse.targetId, label: roomResponse.label, html: resultCard() } : undefined;
+    return renderRoom(ctx, roomSelected, feedback);
   }
   return layout === 'focus' ? renderFocus(ctx) : layout === 'cards' ? renderExplore(ctx) : layout === 'scroll' ? renderBoard(ctx) : renderRanger(ctx);
 }
@@ -412,14 +412,18 @@ function announce(text: string): void {
   if (a) a.textContent = text;
 }
 
-function outcome(result: ActionResult): void {
-  resetRoomFeedback = true;
+function outcome(result: ActionResult, source?: { targetId?: string; label: string }): void {
   message = result.text;
   changes = result.changes ?? [];
+  roomResponse = { place: state.place, ...source, label: source?.label ?? '行动结果' };
   if (result.battle) beginFight(result.battle);
   render();
   announce(result.text);
-  if (!result.battle && layout !== 'room') (document.querySelector('.modal .reply-card') ?? document.querySelector('.reply-card'))?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  if (!result.battle) {
+    const reply = layout === 'room' ? document.querySelector('.room-latest') ?? document.querySelector('.reply-card')
+      : document.querySelector('.modal .reply-card') ?? document.querySelector('.reply-card');
+    reply?.scrollIntoView({ block: 'nearest', behavior: layout === 'room' ? 'instant' : 'smooth' });
+  }
 }
 
 function beginFight(request: BattleRequest): void {
@@ -514,11 +518,13 @@ root.addEventListener('click', e => {
   } else if (cmd === 'begin' && !started) {
     state = createDemo(chosenOrigin); started = true;
     roomSelected = '';
+    roomResponse = undefined; resetRoomWorld = true;
     message = '';
     render();
   } else if (cmd === 'layout' && LAYOUTS.some(l => l.id === val)) {
     layout = val as Layout;
-    if (layout === 'room' && state.stopped) roomSelected = 'constable';
+    if (layout === 'room' && message && roomResponse?.place === state.place && roomResponse.targetId) roomSelected = roomResponse.targetId;
+    else if (layout === 'room' && state.stopped) roomSelected = 'constable';
     document.documentElement.dataset.layout = layout;
     try { localStorage.setItem(LAYOUT_KEY, layout); } catch { /* preference is optional */ }
     try { const url = new URL(location.href); url.searchParams.set('layout', layout); history.replaceState(null, '', url); } catch { /* file previews may restrict history */ }
@@ -527,11 +533,12 @@ root.addEventListener('click', e => {
     (document.querySelector<HTMLButtonElement>('[data-ui="layouts"]') ?? document.querySelector<HTMLButtonElement>('[data-ui="menu"]'))?.focus({ preventScroll: true });
   } else if (cmd === 'quick') {
     document.querySelector(`[data-section="${val}"]`)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-  } else if (cmd === 'tab') { tab = val as Tab; modal = null; message = ''; changes = []; render(); document.querySelector('.play-scroll')?.scrollTo(0, 0); }
+  } else if (cmd === 'tab') { tab = val as Tab; modal = null; message = ''; changes = []; roomResponse = undefined; render(); document.querySelector('.play-scroll')?.scrollTo(0, 0); }
   else if (cmd === 'room-select' && layout === 'room') {
     if (!roomTargets(state).some(target => target.id === val)) return;
-    roomSelected = val; resetRoomActions = true;
+    roomSelected = val; message = ''; changes = []; roomResponse = undefined;
     render();
+    document.querySelector('#room-actions-title')?.scrollIntoView({ block: 'nearest' });
   }
   else if (cmd === 'select') {
     if (layout === 'focus') { selected = val; message = ''; changes = []; openModal('person-actions'); return; }
@@ -542,10 +549,17 @@ root.addEventListener('click', e => {
     responseSection = button.closest('[data-suggestion]') ? 'suggestions'
       : button.closest('[data-section="public-actions"]') ? 'public-actions'
       : button.closest('[data-section="scene"]') ? 'scene' : 'people';
-    outcome(act(state, button.dataset.ui!.slice(7)));
+    const id = button.dataset.ui!.slice(7);
+    const targets = roomTargets(state);
+    const sourceId = layout === 'room' ? roomSelected : selected;
+    const owner = targets.find(target => target.id === sourceId && target.actions.some(action => action.id === id))
+      ?? targets.find(target => target.actions.some(action => action.id === id));
+    const action = owner?.actions.find(candidate => candidate.id === id);
+    if (layout === 'room' && owner) roomSelected = owner.id;
+    outcome(act(state, id), { targetId: owner?.id, label: [owner?.name, action?.label].filter(Boolean).join(' · ') || '行动结果' });
   }
-  else if (cmd === 'travel') { tab = 'world'; modal = null; selected = ''; roomSelected = ''; resetRoomActions = true; responseSection = 'scene'; outcome(travel(state, val as PlaceId)); document.querySelector('.play-scroll')?.scrollTo(0, 0); }
-  else if (cmd === 'dismiss') { message = ''; render(); }
+  else if (cmd === 'travel') { tab = 'world'; modal = null; selected = ''; roomSelected = ''; resetRoomWorld = true; responseSection = 'scene'; outcome(travel(state, val as PlaceId), { label: '行路' }); document.querySelector('.play-scroll')?.scrollTo(0, 0); document.querySelector('[data-room-scroll="world"]')?.scrollTo(0, 0); }
+  else if (cmd === 'dismiss') { message = ''; roomResponse = undefined; render(); }
   else if (cmd === 'train') outcome(train(state, val as 'inner' | 'sword' | 'footwork'));
   else if (cmd === 'stance' && state.sword > 0) { setStance(state, val as 'steady' | 'flowing'); message = `你收剑定了定神，接下来走${val === 'steady' ? '稳守回锋' : '抢步争先'}的路数。`; changes = []; render(); }
   else if (cmd === 'medicine') outcome(act(state, 'use-medicine'));
@@ -561,6 +575,7 @@ root.addEventListener('click', e => {
     if (confirmOrigin !== val) { confirmOrigin = val as OriginId; renderModal(); return; }
     state = createDemo(val as OriginId); started = true; selected = ''; tab = 'world'; modal = null; confirmOrigin = null;
     roomSelected = '';
+    roomResponse = undefined; resetRoomWorld = true;
     message = ''; changes = []; responseSection = 'scene'; render();
     document.querySelector('.play-scroll')?.scrollTo(0, 0);
   } else if (activeFight && cmd === 'respond') {
@@ -574,8 +589,13 @@ root.addEventListener('click', e => {
     if (val === 'pause') { fightPaused = !fightPaused; lastBattleTick = Date.now(); }
     else if (val === 'finish' && b.phase === 'result' && b.result) {
       message = settleBattle(state, activeFight.request, b.result, b.playerHp, b.playerMp);
+      const sourceId = roomResponse?.targetId ?? (activeFight.request.reason === 'arrest' ? 'constable' : activeFight.request.foe);
+      roomSelected = sourceId;
+      roomResponse = { place: state.place, targetId: sourceId, label: `${activeFight.request.name} · 交手之后` };
       responseSection = 'scene';
-      changes = []; activeFight = null; render(); announce(message); return;
+      changes = []; activeFight = null; render(); announce(message);
+      if (layout === 'room') document.querySelector('.room-latest')?.scrollIntoView({ block: 'nearest' });
+      return;
     } else if (!fightPaused) {
       if (val === 'perform') perform(b);
       else if (val === 'ultimate') ultimate(b);
