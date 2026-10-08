@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#151719">
+  <meta name="description" content="game007 手机武侠 MUD 界面设计预览：三种操作布局，每组包含江湖与战斗效果图。">
+  <title>三种操作布局 · game007</title>
+  <style>
+    :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: #151719; color: #f1f1ed; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; cursor: pointer; }
+    a { color: inherit; text-underline-offset: 4px; }
+    button:focus-visible, a:focus-visible { outline: 3px solid #b5dace; outline-offset: 4px; }
+    .page { max-width: 1040px; margin: auto; padding: 34px 32px 40px; }
+    .masthead { display: flex; justify-content: space-between; align-items: center; gap: 16px; font-size: 12px; letter-spacing: .08em; color: #a9adaf; }
+    .wordmark { color: #f1f1ed; font-weight: 700; letter-spacing: .13em; }
+    header { margin: 42px 0 26px; }
+    h1 { font-size: clamp(27px, 5vw, 40px); letter-spacing: -.045em; font-weight: 600; line-height: 1.3; margin: 0 0 12px; }
+    header p { color: #b5b8b8; margin: 0; font-size: 15px; line-height: 1.7; }
+    .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .choice { display: flex; align-items: center; gap: 11px; min-height: 66px; border: 1px solid #3b3e40; background: #202325; color: #b9bdbd; padding: 12px 18px; text-align: left; border-radius: 12px; }
+    .choice b { font-size: 20px; font-weight: 500; }
+    .choice span { font-size: 15px; }
+    .choice[aria-pressed="true"] { color: #151719; border-color: #eceee7; background: #eceee7; }
+    .description { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 0; }
+    h2 { font-size: 18px; margin: 0 0 8px; font-weight: 600; }
+    #summary { color: #acb2b2; line-height: 1.65; font-size: 14px; margin: 0; }
+    #full-image { flex-shrink: 0; padding: 12px 0 12px 12px; font-size: 13px; }
+    .view-switch { display: none; }
+    .screens { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; padding: 28px; border: 1px solid #343739; background: #1c1f21; border-radius: 18px; }
+    figure { margin: 0; min-width: 0; }
+    figcaption { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #c6caca; margin-bottom: 14px; font-size: 13px; }
+    figcaption span { color: #858e8f; font-size: 12px; }
+    .screen { display: block; width: 100%; position: relative; overflow: hidden; border-radius: 12px; background: #e9eceb; box-shadow: 0 14px 40px #0003; aspect-ratio: var(--crop-w) / var(--crop-h); }
+    .screen img { display: block; position: absolute; max-width: none; width: calc(var(--board-w) / var(--crop-w) * 100%); height: auto; left: calc(var(--crop-x) / var(--crop-w) * -100%); top: calc(var(--crop-y) / var(--crop-h) * -100%); }
+    footer { margin-top: 22px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; color: #939d9d; font-size: 12px; line-height: 1.8; }
+    footer p { margin: 0; }
+    noscript img { width: 100%; height: auto; margin-top: 20px; }
+    @media (max-width: 620px) {
+      .page { padding: 24px 18px calc(24px + env(safe-area-inset-bottom)); }
+      header { margin: 30px 0 22px; }
+      header p { font-size: 14px; }
+      .choices { gap: 6px; }
+      .choice { min-height: 62px; padding: 10px 8px; gap: 6px; justify-content: center; flex-direction: column; }
+      .choice b { font-size: 16px; line-height: 1; }
+      .choice span { font-size: 13px; white-space: nowrap; }
+      .description { align-items: flex-start; padding: 20px 0 18px; gap: 8px; }
+      h2 { font-size: 17px; }
+      #summary { font-size: 13px; }
+      #full-image { font-size: 12px; padding: 2px 0 12px 8px; }
+      .view-switch { display: flex; gap: 6px; padding: 4px; margin-bottom: 12px; background: #24282a; border-radius: 10px; }
+      .view-switch button { flex: 1; min-height: 44px; border: 0; background: transparent; color: #aeb5b5; border-radius: 7px; }
+      .view-switch button[aria-pressed="true"] { color: #f3f3ef; background: #454c4d; }
+      .screens { display: block; padding: 0; border: 0; background: transparent; }
+      .screens figure { display: none; }
+      .screens[data-view="world"] figure[data-screen="world"], .screens[data-view="battle"] figure[data-screen="battle"] { display: block; }
+      figcaption { display: none; }
+      .screen { border-radius: 12px; }
+      footer { font-size: 11px; }
+    }
+    @media (prefers-reduced-motion: no-preference) { .choice, .view-switch button { transition: background .15s, color .15s; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="masthead"><span class="wordmark">GAME007</span><span>界面效果图 · 设计预览</span></div>
+    <header>
+      <h1>三种布局，同一个江湖。</h1>
+      <p>先看操作方式。每组都有江湖与战斗两张竖屏效果图。</p>
+    </header>
+    <div class="choices" role="group" aria-label="选择设计方案">
+      <button class="choice" data-concept="a" aria-pressed="true"><b>A</b><span>同屏行动</span></button>
+      <button class="choice" data-concept="b" aria-pressed="false"><b>B</b><span>空间导航</span></button>
+      <button class="choice" data-concept="c" aria-pressed="false"><b>C</b><span>行动记录</span></button>
+    </div>
+    <section aria-labelledby="concept-title">
+      <div class="description">
+        <div aria-live="polite"><h2 id="concept-title">A · 同屏行动</h2><p id="summary">眼前的人、物、去路一眼看清。选中对象，下面直接行动。</p></div>
+        <a id="full-image" href="./a.webp" target="_blank" rel="noopener">打开整组大图 ↗</a>
+      </div>
+      <div class="view-switch" role="group" aria-label="选择效果图类型">
+        <button data-view="world" aria-pressed="true">江湖界面</button>
+        <button data-view="battle" aria-pressed="false">战斗界面</button>
+      </div>
+      <div class="screens" data-view="world">
+        <figure data-screen="world">
+          <figcaption>江湖界面<span>选对象 → 做动作</span></figcaption>
+          <a class="screen" href="./a.webp" target="_blank" rel="noopener" aria-label="放大查看 A 同屏行动江湖效果图" style="--board-w:1254;--crop-x:58;--crop-y:98;--crop-w:549;--crop-h:1132"><img src="./a.webp" alt="A 同屏行动：人物物件网格、地点出口与底部动作区" width="1254" height="1254" fetchpriority="high"></a>
+        </figure>
+        <figure data-screen="battle">
+          <figcaption>战斗界面<span>看清来招 → 直接应对</span></figcaption>
+          <a class="screen" href="./a.webp" target="_blank" rel="noopener" aria-label="放大查看 A 同屏行动战斗效果图" style="--board-w:1254;--crop-x:648;--crop-y:98;--crop-w:550;--crop-h:1132"><img src="./a.webp" alt="A 同屏行动：双方状态、来招提示和四种应对" width="1254" height="1254"></a>
+        </figure>
+      </div>
+    </section>
+    <footer><p>效果图用于比较布局与视觉；文字、数值为示意。</p><p>可分别选择主界面和战斗的方向。</p></footer>
+    <noscript><p>完整设计图：</p><a href="./a.webp"><img src="./a.webp" alt="A 同屏行动，江湖与战斗效果图"></a><a href="./b.webp"><img src="./b.webp" alt="B 空间导航，江湖与战斗效果图"></a><a href="./c.webp"><img src="./c.webp" alt="C 行动记录，江湖与战斗效果图"></a></noscript>
+  </main>
+  <script>
+    const concepts = {
+      a: { title: 'A · 同屏行动', summary: '眼前的人、物、去路一眼看清。选中对象，下面直接行动。', width: 1254, height: 1254, crops: [[58,98,549,1132],[648,98,550,1132]] },
+      b: { title: 'B · 空间导航', summary: '用位置理解周围的人与去路。战斗把双方状态和攻守走势集中呈现。', width: 1536, height: 1024, crops: [[262,90,485,903],[790,90,484,903]] },
+      c: { title: 'C · 行动记录', summary: '行动与世界变化形成简短记录。对象和操作固定在下方，随时接着做。', width: 1408, height: 1117, crops: [[123,106,542,1004],[743,106,544,1005]] }
+    };
+    const screens = document.querySelector('.screens');
+    function selectConcept(key) {
+      const concept = concepts[key] || concepts.a;
+      const safeKey = Object.hasOwn(concepts, key) ? key : 'a';
+      const src = `./${safeKey}.webp`;
+      document.querySelectorAll('[data-concept]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.concept === safeKey)));
+      document.getElementById('concept-title').textContent = concept.title;
+      document.getElementById('summary').textContent = concept.summary;
+      document.getElementById('full-image').href = src;
+      document.querySelectorAll('.screen').forEach((screen, index) => {
+        const [x,y,w,h] = concept.crops[index];
+        Object.entries({'board-w':concept.width,'crop-x':x,'crop-y':y,'crop-w':w,'crop-h':h}).forEach(([property,value]) => screen.style.setProperty(`--${property}`, value));
+        screen.href = src;
+        const label = `${concept.title}${index ? '战斗' : '江湖'}效果图`;
+        screen.setAttribute('aria-label', `放大查看 ${label}`);
+        const img = screen.querySelector('img');
+        img.src = src;
+        img.alt = label;
+        img.width = concept.width;
+        img.height = concept.height;
+      });
+    }
+    document.querySelectorAll('[data-concept]').forEach(button => button.addEventListener('click', () => { location.hash = button.dataset.concept; }));
+    document.querySelectorAll('button[data-view]').forEach(button => button.addEventListener('click', () => {
+      screens.dataset.view = button.dataset.view;
+      document.querySelectorAll('button[data-view]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    }));
+    addEventListener('hashchange', () => selectConcept(location.hash.slice(1)));
+    selectConcept(location.hash.slice(1));
+  </script>
+</body>
+</html>
